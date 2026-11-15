@@ -1,7 +1,7 @@
 """
 TomatoSim Web Application - FastAPI Server
 Model Simulasi Pertanian (PBL MSP - Tanaman Tomat)
-Kelompok 3 - Departemen GFM, IPB University
+Kelompok 4 - Departemen GFM, IPB University
 """
 
 import io

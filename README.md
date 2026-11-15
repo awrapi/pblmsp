@@ -2,7 +2,7 @@
 **Tugas Project-Based Learning (PBL) - Model Simulasi Pertanian (MSP) 2026**  
 *Departemen Geofisika dan Meteorologi, IPB University*  
 **Dosen Pembimbing:** Impron, M. Sc. & Yon Sugiarto, M. Sc.  
-**Kelompok 3:**
+**Kelompok 4:**
 - G2401241011 - Ekane Susiana
 - G2401241012 - Nurul Wardah
 - G2401241020 - Muhammad Habib Ismail Ilham
