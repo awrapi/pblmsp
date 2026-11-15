@@ -1,0 +1,2311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroTomato • Enterprise Crop Bio-Simulation Platform</title>
+
+  <!-- Tomato SVG Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='13' r='9' fill='%23F43F5E'/><path d='M12 2v3M8 4c2 1 4 1 8 0' stroke='%230E7465' stroke-width='2' stroke-linecap='round'/></svg>">
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            brand: {
+              teal: '#0A594E',       /* Deep authoritative pine/teal */
+              tealDark: '#063B34',   /* Luxury deep forest */
+              tealHover: '#0D7264',
+              canvas: '#E6F0ED',      /* Soft alpine background */
+              cardBg: '#FFFFFF',
+              gold: '#F59E0B',        /* Warm radiant gold */
+              goldLight: '#FEF3C7',
+              softCyan: '#BAE6FD',
+              softMint: '#D1FAE5',
+              mintText: '#065F46',
+              softAmber: '#FEF3C7',
+              amberText: '#92400E',
+              softRose: '#FFE4E6',
+              roseText: '#9F1239',
+              tomato: '#F43F5E',
+            }
+          },
+          boxShadow: {
+            'luxury': '0 2px 4px -1px rgba(0,0,0,0.03), 0 10px 30px -4px rgba(10,89,78,0.08)',
+            'glass': '0 8px 32px 0 rgba(10, 89, 78, 0.12)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #E6F0ED;
+      background-image: 
+        radial-gradient(at 15% 15%, rgba(10, 89, 78, 0.08) 0px, transparent 55%),
+        radial-gradient(at 85% 85%, rgba(245, 158, 11, 0.06) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.4) 0px, transparent 80%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem sm:1.5rem;
+      font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
+    }
+
+    /* Signature Precision Notch for Active Sidebar Tab */
+    .sidebar-tab {
+      position: relative;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      border-top-left-radius: 28px;
+      border-bottom-left-radius: 28px;
+    }
+
+    .sidebar-tab.active {
+      background-color: #FFFFFF !important;
+      color: #0A594E !important;
+      font-weight: 700;
+    }
+
+    .sidebar-tab.active svg {
+      stroke: #0A594E !important;
+    }
+
+    .sidebar-tab.active::before {
+      content: '';
+      position: absolute;
+      top: -24px;
+      right: 0;
+      width: 24px;
+      height: 24px;
+      background: transparent;
+      border-bottom-right-radius: 24px;
+      box-shadow: 12px 12px 0 12px #FFFFFF;
+      pointer-events: none;
+    }
+
+    .sidebar-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -24px;
+      right: 0;
+      width: 24px;
+      height: 24px;
+      background: transparent;
+      border-top-right-radius: 24px;
+      box-shadow: 12px -12px 0 12px #FFFFFF;
+      pointer-events: none;
+    }
+
+    /* Precision sleek scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Custom Range Slider Thumb */
+    input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #0A594E;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border: 2px solid #ffffff;
+      -webkit-appearance: none;
+      margin-top: -6px;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #E2E8F0;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-slate-800">
+
+  <!-- Floating Toast Notification -->
+  <div id="toastNotification" class="fixed top-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white backdrop-blur-md px-5 py-3 rounded-2xl shadow-2xl border border-white/10 flex items-center space-x-3 z-50 transition-all duration-300 opacity-0 pointer-events-none -translate-y-4">
+    <div id="toastIcon" class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">✓</div>
+    <p class="text-xs font-semibold" id="toastMessage">Model berhasil dijalankan!</p>
+  </div>
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="mobileBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-30 hidden lg:hidden transition-opacity"></div>
+
+  <!-- ==================== MAIN APPLICATION CONTAINER ==================== -->
+  <div class="w-full max-w-[1480px] bg-brand-teal rounded-3xl lg:rounded-[40px] p-2.5 sm:p-3 shadow-2xl border-2 sm:border-4 border-brand-tealDark/40 flex flex-col lg:flex-row overflow-hidden min-h-[880px]">
+    
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside id="mainSidebar" class="fixed lg:static inset-y-0 left-0 z-40 lg:z-auto w-64 bg-brand-teal text-white flex flex-col justify-between pt-7 pb-5 pl-6 pr-0 select-none transition-transform duration-300 -translate-x-full lg:translate-x-0">
+      
+      <div>
+        <!-- Brand Logo Header -->
+        <div class="flex items-center justify-between pr-6 mb-8">
+          <div class="flex items-center space-x-3 cursor-pointer" onclick="openAboutModal()">
+            <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">
+              <svg class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-lg font-extrabold tracking-tight text-white leading-none">
+                Agro<span class="text-amber-300">Tomato</span>
+              </h1>
+              <p class="text-[10px] text-emerald-100/70 font-bold tracking-widest uppercase mt-1">PBL MSP • IPB 2025</p>
+            </div>
+          </div>
+          <button onclick="toggleMobileSidebar()" class="lg:hidden text-white/70 hover:text-white p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="space-y-1 pr-0 text-[13px] font-semibold">
+          <button onclick="switchTab('overview', this)" class="sidebar-tab active w-full flex items-center space-x-3.5 px-4 py-3 text-white/80 hover:text-white text-left">
+            <i data-lucide="layout-grid" class="w-4 h-4 stroke-[2.2]"></i>
+            <span>Overview</span>
+          </button>
+
+          <button onclick="switchTab('biomassa', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 text-white/80 hover:text-white text-left">
+            <i data-lucide="sprout" class="w-4 h-4 stroke-[2.2]"></i>
+            <span>Dinamika Organ</span>
+          </button>
+
+          <button onclick="switchTab('neraca-air', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 text-white/80 hover:text-white text-left">
+            <i data-lucide="droplet" class="w-4 h-4 stroke-[2.2]"></i>
+            <span>Neraca Air & KAT</span>
+          </button>
+
+          <button onclick="switchTab('skenario', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 text-white/80 hover:text-white text-left">
+            <i data-lucide="sun-medium" class="w-4 h-4 stroke-[2.2]"></i>
+            <span>Skenario Iklim</span>
+          </button>
+
+          <button onclick="switchTab('validasi', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 text-white/80 hover:text-white text-left">
+            <i data-lucide="check-circle-2" class="w-4 h-4 stroke-[2.2]"></i>
+            <span>Validasi Data Riil</span>
+          </button>
+
+          <button onclick="switchTab('tabel', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 text-white/80 hover:text-white text-left">
+            <i data-lucide="table" class="w-4 h-4 stroke-[2.2]"></i>
+            <span>Tabel Harian</span>
+          </button>
+
+          <button onclick="switchTab('parameter', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 text-white/80 hover:text-white text-left">
+            <i data-lucide="sliders" class="w-4 h-4 stroke-[2.2]"></i>
+            <span>Parameter Model</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom Card: Executive Institutional Panel (Bespoke Luxury Glass Card) -->
+      <div class="pr-6 mt-4">
+        <div class="relative bg-gradient-to-b from-white/[0.09] to-white/[0.03] backdrop-blur-md rounded-2xl p-4 border border-white/15 shadow-xl overflow-hidden">
+          
+          <!-- System Status Bar -->
+          <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-white/10">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Engine Online</span>
+            </div>
+            <span class="text-[10px] font-mono text-emerald-100/60 font-semibold">v2.5 GFM</span>
+          </div>
+
+          <!-- Academic Affiliation Info -->
+          <div onclick="openTeamModal()" class="cursor-pointer group">
+            <div class="flex items-center space-x-2.5 mb-1.5">
+              <div class="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-amber-300 font-extrabold text-xs border border-white/20">
+                K3
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-white group-hover:text-amber-300 transition flex items-center space-x-1">
+                  <span>Kelompok 3 • MSP</span>
+                  <i data-lucide="chevron-right" class="w-3 h-3 text-white/50 group-hover:translate-x-0.5 transition-transform"></i>
+                </h4>
+                <p class="text-[10px] text-emerald-100/70 truncate">Departemen GFM • FMIPA IPB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Executive Action Button -->
+          <button id="btnSideSim" onclick="runSimulation('overview', this)" class="mt-3.5 w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 active:scale-[0.98] transition-all text-slate-950 font-extrabold text-xs py-2.5 px-3.5 rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 stroke-[2.5] text-slate-950"></i>
+            <span>Simulasi Ulang</span>
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ==================== MAIN WHITE CANVAS ==================== -->
+    <main class="flex-1 bg-white rounded-2xl lg:rounded-[34px] p-5 sm:p-7 lg:p-8 flex flex-col justify-start space-y-6 overflow-y-auto max-h-[890px] w-full">
+      
+      <!-- Top Control Bar -->
+      <header class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+        
+        <!-- Left: Mobile Menu Toggle + Dataset & Date Controls -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="toggleMobileSidebar()" class="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200">
+            <i data-lucide="menu" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Dataset Selector Pill -->
+          <div class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100/90 border border-slate-200/80 rounded-2xl px-3.5 py-1.5 transition cursor-pointer">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-teal"></i>
+            <span class="text-xs font-medium text-slate-400">Stasiun:</span>
+            <select id="datasetSource" onchange="onDatasetChange()" class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer pr-1">
+              <option value="garut">Garut (Elevasi 717 m dpl)</option>
+              <option value="bogor">Bogor (Elevasi 260 m dpl)</option>
+              <option value="custom">Upload Dataset Sendiri</option>
+            </select>
+          </div>
+
+          <!-- Planting Date Picker Pill -->
+          <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200/80 rounded-2xl px-3.5 py-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span class="text-xs font-semibold text-slate-400">Tanam:</span>
+            <input type="date" id="tglTanam" value="2015-01-01" min="2015-01-01" max="2025-06-01" onchange="runSimulation()" class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer font-mono">
+          </div>
+
+          <!-- Upload Custom Dataset Button -->
+          <button onclick="openUploadModal()" class="flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/70 text-xs font-bold px-3 py-1.5 rounded-2xl transition">
+            <i data-lucide="upload-cloud" class="w-3.5 h-3.5 text-emerald-700"></i>
+            <span>Upload File Luar</span>
+          </button>
+        </div>
+
+        <!-- Right: Team Pill (Clickable) + Download Report -->
+        <div class="flex items-center space-x-2.5">
+          
+          <!-- Download Report Dropdown with Direct Blob Fetch & Toast -->
+          <div class="relative group">
+            <button class="bg-brand-teal hover:bg-brand-tealHover text-white text-xs font-bold py-2 px-3.5 rounded-2xl shadow-sm flex items-center space-x-1.5 transition active:scale-95">
+              <i data-lucide="download" class="w-3.5 h-3.5 stroke-[2.5]"></i>
+              <span>Download report</span>
+              <i data-lucide="chevron-down" class="w-3 h-3 text-emerald-200"></i>
+            </button>
+            
+            <div class="absolute right-0 mt-1.5 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 hidden group-hover:block z-30">
+              <button onclick="downloadExport('excel')" class="w-full text-left flex items-center space-x-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-brand-teal transition">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                <span>Unduh Excel (.xlsx)</span>
+              </button>
+              <button onclick="downloadExport('csv')" class="w-full text-left flex items-center space-x-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition">
+                <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+                <span>Unduh CSV (.csv)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Clickable Team Profile Pill -->
+          <button onclick="openTeamModal()" title="Klik untuk melihat nama anggota kelompok" class="flex items-center space-x-2 bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-300 py-1 px-2.5 rounded-2xl transition-all cursor-pointer group">
+            <span class="text-xs font-bold text-slate-700 group-hover:text-brand-teal">Kelompok 3 MSP</span>
+            <div class="w-7 h-7 rounded-full bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center border border-emerald-300 shadow-sm">
+              K3
+            </div>
+          </button>
+
+          <button onclick="openAboutModal()" title="Informasi & Referensi Model" class="text-slate-400 hover:text-brand-teal p-1.5 rounded-xl hover:bg-slate-50 transition">
+            <i data-lucide="help-circle" class="w-4 h-4"></i>
+          </button>
+
+        </div>
+      </header>
+
+      <!-- ==================== TAB 1: OVERVIEW (HERO) ==================== -->
+      <div id="tab-overview" class="tab-pane block space-y-6">
+        
+        <!-- Header Info & Metric Toggle Pills -->
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Dinamika Pertumbuhan & Hasil Panen</h2>
+            <div class="flex items-center space-x-2 mt-1 text-xs text-slate-500 font-medium">
+              <span>Siklus Simulasi:</span>
+              <div class="flex items-center space-x-1.5 font-bold text-slate-800 bg-slate-50 px-2.5 py-0.5 rounded-lg border border-slate-200/60 font-mono">
+                <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
+                <span id="periodText">HST 1 - HST 110 (20 Apr 2015)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metric Selectors -->
+          <div class="flex items-center bg-slate-100 p-1 rounded-2xl text-xs font-semibold text-slate-600">
+            <button onclick="setMainChartMetric('buah', this)" class="chart-metric-btn active bg-white text-brand-teal shadow-sm px-3.5 py-1.5 rounded-xl transition">
+              Produksi Buah
+            </button>
+            <button onclick="setMainChartMetric('biomassa', this)" class="chart-metric-btn px-3.5 py-1.5 rounded-xl hover:text-slate-900 transition">
+              Biomassa Organ
+            </button>
+            <button onclick="setMainChartMetric('lai', this)" class="chart-metric-btn px-3.5 py-1.5 rounded-xl hover:text-slate-900 transition">
+              LAI
+            </button>
+            <button onclick="setMainChartMetric('neraca', this)" class="chart-metric-btn px-3.5 py-1.5 rounded-xl hover:text-slate-900 transition">
+              KAT & Hujan
+            </button>
+          </div>
+        </div>
+
+        <!-- HERO CHART WITH FLOATING KPI CARD -->
+        <div class="relative bg-white rounded-3xl pt-8 pb-3 px-1 border border-slate-100">
+          
+          <!-- Loading Overlay -->
+          <div id="chartLoadingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-[2px] rounded-3xl z-30 flex flex-col items-center justify-center space-y-2 opacity-0 pointer-events-none transition-opacity duration-200">
+            <div class="w-8 h-8 border-3 border-brand-teal border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-slate-700">Mengkalkulasi dinamika biofisik tomat...</p>
+          </div>
+
+          <!-- Floating KPI Pill (Bespoke Luxury Surface) -->
+          <div id="floatingCard" class="absolute z-20 bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-xl shadow-brand-teal/5 rounded-2xl px-4 py-2 text-center transition-all duration-300" style="right: 28%; top: 8px;">
+            <p id="kpiBuahValue" class="text-base font-extrabold text-brand-teal tracking-tight font-mono">
+              0.296 <span class="text-xs font-semibold text-slate-500">ton BK/ha</span>
+            </p>
+            <p id="kpiBuahSubtitle" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Produksi Buah Masak</p>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="h-64 sm:h-72 w-full">
+            <canvas id="mainChart"></canvas>
+          </div>
+        </div>
+
+        <!-- BOTTOM SECTION: ORGAN TELEMETRY + AGRO-ADVISORY CARD -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-1">
+          
+          <!-- Organ Telemetry Rows -->
+          <div class="lg:col-span-2 bg-white rounded-3xl space-y-3">
+            
+            <div class="flex items-center justify-between pb-1">
+              <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Status Alokasi Biomassa Organ</h3>
+              <button onclick="switchTab('biomassa')" class="text-xs font-bold text-brand-teal hover:underline flex items-center space-x-1">
+                <span>Lihat dinamika lengkap</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- List Item 1: Buah -->
+            <div class="flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-50/80 transition-all border border-slate-100">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center border border-rose-100 shadow-xs">
+                  <svg class="w-5 h-5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="13" r="8"/>
+                    <path d="M12 2v3M9 4l6 2"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Biomassa Buah Tomat</h4>
+                  <p class="text-[11px] text-slate-400 font-medium">Fase Pematangan Akhir (Sink Utama)</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-4 sm:space-x-6">
+                <span id="badgeStatusBuah" class="bg-brand-softMint text-brand-mintText text-xs font-bold px-3 py-1 rounded-full">
+                  Optimal
+                </span>
+                <span id="rowBuahGram" class="text-xs font-extrabold text-slate-800 font-mono w-16 text-right">29.58 g</span>
+                <span id="rowBuahTon" class="text-xs text-slate-400 font-semibold w-24 text-right">0.296 ton/ha</span>
+              </div>
+            </div>
+
+            <!-- List Item 2: Daun -->
+            <div class="flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-50/80 transition-all border border-slate-100">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-xs">
+                  <svg class="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Biomassa Daun & Tajuk</h4>
+                  <p class="text-[11px] text-slate-400 font-medium">Intersepsi Radiasi & Fotosintesis</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-4 sm:space-x-6">
+                <span id="badgeLAI" class="bg-brand-softMint text-brand-mintText text-xs font-bold px-3 py-1 rounded-full">
+                  LAI 1.55
+                </span>
+                <span id="rowDaunGram" class="text-xs font-extrabold text-slate-800 font-mono w-16 text-right">76.18 g</span>
+                <span id="rowDaunTon" class="text-xs text-slate-400 font-semibold w-24 text-right">0.762 ton/ha</span>
+              </div>
+            </div>
+
+            <!-- List Item 3: Batang -->
+            <div class="flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-50/80 transition-all border border-slate-100">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center border border-amber-100 shadow-xs">
+                  <svg class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="8" y="2" width="8" height="20" rx="4"/>
+                    <line x1="12" y1="6" x2="12" y2="18"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Biomassa Batang Utama</h4>
+                  <p class="text-[11px] text-slate-400 font-medium">Struktur & Translokasi Asimilat</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-4 sm:space-x-6">
+                <span id="badgeStatusBatang" class="bg-brand-softAmber text-brand-amberText text-xs font-bold px-3 py-1 rounded-full">
+                  Kokoh
+                </span>
+                <span id="rowBatangGram" class="text-xs font-extrabold text-slate-800 font-mono w-16 text-right">127.75 g</span>
+                <span id="rowBatangTon" class="text-xs text-slate-400 font-semibold w-24 text-right">1.277 ton/ha</span>
+              </div>
+            </div>
+
+            <!-- List Item 4: Akar -->
+            <div class="flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-50/80 transition-all border border-slate-100">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center border border-teal-100 shadow-xs">
+                  <svg class="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 10l-5 5-5-5"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Biomassa Sistem Perakaran</h4>
+                  <p class="text-[11px] text-slate-400 font-medium">Penyerapan Air & Hara (Zr 700 mm)</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-4 sm:space-x-6">
+                <span id="badgeStatusAkar" class="bg-brand-softMint text-brand-mintText text-xs font-bold px-3 py-1 rounded-full">
+                  Sehat
+                </span>
+                <span id="rowAkarGram" class="text-xs font-extrabold text-slate-800 font-mono w-16 text-right">25.35 g</span>
+                <span id="rowAkarTon" class="text-xs text-slate-400 font-semibold w-24 text-right">0.254 ton/ha</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Executive Agro-Advisory Card -->
+          <div class="bg-gradient-to-b from-[#E7F6F2] via-[#F2FAF7] to-[#FFF3EC] rounded-3xl p-6 flex flex-col justify-between border border-emerald-200/60 shadow-sm relative overflow-hidden min-h-[270px]">
+            
+            <div class="relative z-10">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold text-brand-teal uppercase tracking-widest bg-emerald-100/70 px-2 py-0.5 rounded-md">Agro-Advisory</span>
+                <span id="badgeWDFPill" class="text-[10px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">Defisit Ringan</span>
+              </div>
+
+              <h3 id="cardWDFTitle" class="text-base font-extrabold text-slate-900 tracking-tight leading-snug mt-3">
+                Status Neraca Air & Cekaman
+              </h3>
+              
+              <!-- Progress Gauge Bar -->
+              <div class="mt-2.5">
+                <div class="flex justify-between text-[11px] font-mono font-bold text-slate-600 mb-1">
+                  <span>Indeks Kecukupan Air (WDF)</span>
+                  <span id="cardWDFVal" class="text-brand-teal">0.232</span>
+                </div>
+                <div class="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
+                  <div id="wdfProgressBar" class="bg-gradient-to-r from-amber-500 to-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 23.2%"></div>
+                </div>
+              </div>
+
+              <p id="cardWDFDesc" class="text-xs text-slate-600 font-medium mt-3 leading-relaxed">
+                Kadar air tanah mulai mendekati ambang kritis. Disarankan penambahan irigasi suplemen pada fase generatif.
+              </p>
+            </div>
+
+            <!-- Action Link -->
+            <div class="relative z-10 mt-5 pt-3 border-t border-emerald-200/40 flex justify-between items-center">
+              <span class="text-[11px] text-slate-500 font-medium">Model Ritchie 2-Tahap</span>
+              <button onclick="switchTab('neraca-air')" class="bg-brand-teal hover:bg-brand-tealHover active:scale-95 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-sm transition flex items-center space-x-1.5">
+                <span>Optimasi Neraca Air</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ==================== TAB 2: DINAMIKA ORGAN ==================== -->
+      <div id="tab-biomassa" class="tab-pane hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Dinamika Asimilasi & Partisi Biomassa</h2>
+          <p class="text-xs text-slate-500 font-medium">Asimilasi radiasi surya (Monteith RUE), respirasi pemeliharaan suhu-responsif, dan perkembangan tajuk tanaman per HST.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Distribusi Bobot Kering Organ (g BK / tanaman)</h3>
+            <div class="h-72">
+              <canvas id="chartBiomassaDetail"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Dinamika Indeks Luas Daun (LAI)</h3>
+            <div class="h-72">
+              <canvas id="chartLAIDetail"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 3: NERACA AIR ==================== -->
+      <div id="tab-neraca-air" class="tab-pane hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Neraca Air Tanah & Evapotranspirasi</h2>
+          <p class="text-xs text-slate-500 font-medium">Model Ritchie dua-tahap, Penman-Monteith FAO-56, infiltrasi, dan perkolasi tanah.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Kadar Air Tanah (KAT % vol) vs Curah Hujan (mm)</h3>
+            <div class="h-72">
+              <canvas id="chartKATDetail"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Evapotranspirasi Harian: ETo, ETc, dan ETa (mm/hari)</h3>
+            <div class="h-72">
+              <canvas id="chartETDetail"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 4: SKENARIO IKLIM ==================== -->
+      <div id="tab-skenario" class="tab-pane hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Uji Sensitivitas Perubahan Iklim</h2>
+          <p class="text-xs text-slate-500 font-medium">Simulasikan dampak kenaikan suhu, kelembaban, dan curah hujan terhadap umur panen dan hasil buah tomat.</p>
+        </div>
+
+        <!-- Sliders Box -->
+        <div class="bg-slate-50 border border-slate-200/70 rounded-3xl p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Suhu Slider -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Kenaikan Suhu Udara</span>
+                <span id="lblSuhu" class="text-xs font-extrabold font-mono text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg">+0.0 °C</span>
+              </div>
+              <input type="range" id="sliderSuhu" min="-2.0" max="5.0" step="0.5" value="0.0" oninput="updateScenarioSliders()" class="w-full cursor-pointer">
+              <div class="flex justify-between text-[11px] text-slate-400 font-medium font-mono">
+                <span>-2.0°C</span>
+                <span>Aktual (0)</span>
+                <span>+5.0°C</span>
+              </div>
+            </div>
+
+            <!-- RH Slider -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Perubahan Kelembaban</span>
+                <span id="lblRH" class="text-xs font-extrabold font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">+0 %</span>
+              </div>
+              <input type="range" id="sliderRH" min="-20" max="20" step="5" value="0" oninput="updateScenarioSliders()" class="w-full cursor-pointer">
+              <div class="flex justify-between text-[11px] text-slate-400 font-medium font-mono">
+                <span>-20%</span>
+                <span>Aktual (0)</span>
+                <span>+20%</span>
+              </div>
+            </div>
+
+            <!-- CH Slider -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Anomali Curah Hujan</span>
+                <span id="lblCH" class="text-xs font-extrabold font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">+0 mm</span>
+              </div>
+              <input type="range" id="sliderCH" min="-10" max="20" step="2" value="0" oninput="updateScenarioSliders()" class="w-full cursor-pointer">
+              <div class="flex justify-between text-[11px] text-slate-400 font-medium font-mono">
+                <span>-10 mm</span>
+                <span>Aktual (0)</span>
+                <span>+20 mm</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 flex justify-end">
+            <button onclick="runSimulation(null, this)" class="bg-brand-teal hover:bg-brand-tealHover text-white font-bold text-xs py-2.5 px-6 rounded-2xl shadow-sm transition active:scale-95 flex items-center space-x-2">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Terapkan Skenario Iklim</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Comparison Metrics Box: Baseline vs Scenario -->
+        <div class="bg-white border border-slate-200/70 rounded-3xl p-6 shadow-sm space-y-4">
+          <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Komparasi Kuantitatif: Baseline vs Skenario</h3>
+          
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+            <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/60">
+              <span class="text-slate-400 font-semibold text-[11px]">Umur Panen (HST)</span>
+              <p id="compHST" class="text-lg font-extrabold font-mono text-slate-800 mt-1">110 HST</p>
+              <p id="compHSTDelta" class="text-[11px] font-bold text-slate-500 mt-0.5">Sama dengan baseline</p>
+            </div>
+
+            <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/60">
+              <span class="text-slate-400 font-semibold text-[11px]">Hasil Buah (ton BK/ha)</span>
+              <p id="compBuah" class="text-lg font-extrabold font-mono text-rose-600 mt-1">0.296</p>
+              <p id="compBuahDelta" class="text-[11px] font-bold text-slate-500 mt-0.5">Sama dengan baseline</p>
+            </div>
+
+            <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/60">
+              <span class="text-slate-400 font-semibold text-[11px]">Total ETa (mm)</span>
+              <p id="compETa" class="text-lg font-extrabold font-mono text-blue-600 mt-1">79.77 mm</p>
+              <p id="compETaDelta" class="text-[11px] font-bold text-slate-500 mt-0.5">Sama dengan baseline</p>
+            </div>
+
+            <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/60">
+              <span class="text-slate-400 font-semibold text-[11px]">Efisiensi Air (WUE)</span>
+              <p id="compWUE" class="text-lg font-extrabold font-mono text-emerald-600 mt-1">1.038 g/L</p>
+              <p id="compWUEDelta" class="text-[11px] font-bold text-slate-500 mt-0.5">Sama dengan baseline</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Comparison Chart -->
+        <div class="bg-white border border-slate-200/70 rounded-3xl p-5 shadow-sm space-y-3">
+          <div>
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Visual Komparasi Akumulasi Biomassa & LAI (Baseline vs Skenario)</h3>
+            <p class="text-[11px] text-slate-400">Garis padat = Skenario Baru, Garis putus-putus = Kondisi Baseline.</p>
+          </div>
+          <div class="h-72 w-full">
+            <canvas id="chartSkenarioKomparasi"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== TAB 5: VALIDASI DATA RIIL ==================== -->
+      <div id="tab-validasi" class="tab-pane hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Validasi Model vs Data Observasi Riil</h2>
+          <p class="text-xs text-slate-500 font-medium">Komparasi nilai simulasi terhadap rentang data lapangan (*Sheet DATA BIOMASSA*) & data statistik daerah.</p>
+        </div>
+
+        <!-- Visual Comparison Chart -->
+        <div class="bg-white border border-slate-200/70 rounded-3xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Komparasi Visual: Biomassa Model vs Target Lapangan (g/tanaman)</h3>
+            <span class="text-[11px] font-semibold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60 font-mono">
+              Sumber: Sheet DATA BIOMASSA
+            </span>
+          </div>
+          <div class="h-64 sm:h-72 w-full">
+            <canvas id="chartValidasiBiomassa"></canvas>
+          </div>
+        </div>
+
+        <!-- Evaluation Summary Cards & Scientific Notes -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white border border-slate-200/70 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Evaluasi Kuantitatif Rentang Lapangan</h3>
+            
+            <div class="space-y-2.5 text-xs">
+              <div class="p-3 bg-slate-50/80 rounded-2xl flex justify-between items-center border border-slate-100">
+                <div>
+                  <span class="font-bold text-slate-800">Daun</span>
+                  <p class="text-[11px] text-slate-400">Target: 152,1 - 177,2 g</p>
+                </div>
+                <div class="text-right">
+                  <span id="valDaunSim" class="font-bold font-mono text-brand-teal text-sm">-</span>
+                  <p id="valDaunStatus" class="text-[10px] font-bold text-slate-400">Mengevaluasi...</p>
+                </div>
+              </div>
+              <div class="p-3 bg-slate-50/80 rounded-2xl flex justify-between items-center border border-slate-100">
+                <div>
+                  <span class="font-bold text-slate-800">Batang</span>
+                  <p class="text-[11px] text-slate-400">Target: 88,6 - 112,2 g</p>
+                </div>
+                <div class="text-right">
+                  <span id="valBatangSim" class="font-bold font-mono text-brand-teal text-sm">-</span>
+                  <p id="valBatangStatus" class="text-[10px] font-bold text-slate-400">Mengevaluasi...</p>
+                </div>
+              </div>
+              <div class="p-3 bg-slate-50/80 rounded-2xl flex justify-between items-center border border-slate-100">
+                <div>
+                  <span class="font-bold text-slate-800">Buah</span>
+                  <p class="text-[11px] text-slate-400">Target: 217,5 - 249,8 g</p>
+                </div>
+                <div class="text-right">
+                  <span id="valBuahSim" class="font-bold font-mono text-brand-teal text-sm">-</span>
+                  <p id="valBuahStatus" class="text-[10px] font-bold text-slate-400">Mengevaluasi...</p>
+                </div>
+              </div>
+              <div class="p-3 bg-slate-50/80 rounded-2xl flex justify-between items-center border border-slate-100">
+                <div>
+                  <span class="font-bold text-slate-800">Akar</span>
+                  <p class="text-[11px] text-slate-400">Target: 0,009 - 0,352 g</p>
+                </div>
+                <div class="text-right">
+                  <span id="valAkarSim" class="font-bold font-mono text-brand-teal text-sm">-</span>
+                  <p id="valAkarStatus" class="text-[10px] font-bold text-slate-400">Mengevaluasi...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Academic Note for Presentation -->
+            <div class="mt-3 p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl text-[11px] text-slate-600 leading-relaxed">
+              <b class="text-brand-teal">Catatan Ilmiah untuk Presentasi:</b><br>
+              Biomassa batang model berada dekat dengan rentang observasi riil (+13.8%). Nilai buah model merefleksikan akumulasi bahan kering murni (BK) dengan fraksi kadar air buah ~94%, sedangkan data observasi mencakup bobot basah lapang.
+            </div>
+          </div>
+
+          <!-- Historical Production Table -->
+          <div class="bg-white border border-slate-200/70 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Statistik Luas Panen & Produksi Riil (Garut & Bogor)</h3>
+            <div class="overflow-x-auto max-h-[340px]">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-[11px] font-bold text-slate-700 uppercase tracking-wider sticky top-0">
+                  <tr>
+                    <th class="py-2.5 px-3">Tahun</th>
+                    <th class="py-2.5 px-3">Garut (ha)</th>
+                    <th class="py-2.5 px-3">Garut (ton)</th>
+                    <th class="py-2.5 px-3">Bogor (ha)</th>
+                    <th class="py-2.5 px-3">Bogor (ton)</th>
+                  </tr>
+                </thead>
+                <tbody id="tableHistorical" class="divide-y divide-slate-100 font-mono text-[11px]">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 6: TABEL HARIAN ==================== -->
+      <div id="tab-tabel" class="tab-pane hidden space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900">Tabel Hasil Simulasi Harian</h2>
+            <p class="text-xs text-slate-500 font-medium">Output 44 parameter biofisik tanaman dan iklim per HST.</p>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="downloadExport('excel')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center space-x-1.5 transition">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+              <span>Unduh Excel</span>
+            </button>
+            <button onclick="downloadExport('csv')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center space-x-1.5 transition">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              <span>Unduh CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/70 text-xs">
+          <div class="flex items-center space-x-2 flex-1 max-w-xs bg-white px-3 py-1.5 rounded-xl border border-slate-200/80">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+            <input type="text" id="tableSearchInput" oninput="filterTable()" placeholder="Cari HST atau Tanggal..." class="bg-transparent outline-none w-full text-xs font-medium">
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-500 font-semibold">Filter Fase:</span>
+            <select id="tableFaseFilter" onchange="filterTable()" class="bg-white px-3 py-1.5 rounded-xl border border-slate-200/80 text-xs font-bold outline-none cursor-pointer">
+              <option value="all">Semua Fase (1-5)</option>
+              <option value="Fase-1">Fase-1 (Bibit)</option>
+              <option value="Fase-2">Fase-2 (Vegetatif)</option>
+              <option value="Fase-3">Fase-3 (Pembungaan)</option>
+              <option value="Fase-4">Fase-4 (Pembesaran Buah)</option>
+              <option value="Fase-5">Fase-5 (Pematangan)</option>
+            </select>
+          </div>
+
+          <span id="tableRowCount" class="text-slate-400 font-medium">Menampilkan 110 baris</span>
+        </div>
+
+        <div class="bg-white border border-slate-200/70 rounded-3xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto max-h-[480px]">
+            <table class="w-full text-left text-xs text-slate-600 border-collapse">
+              <thead class="bg-slate-50 text-[11px] font-bold text-slate-700 uppercase tracking-wider sticky top-0 border-b border-slate-100">
+                <tr>
+                  <th class="py-2.5 px-3">HST</th>
+                  <th class="py-2.5 px-3">Tanggal</th>
+                  <th class="py-2.5 px-3">Fase</th>
+                  <th class="py-2.5 px-3">LAI</th>
+                  <th class="py-2.5 px-3">Buah (t/ha)</th>
+                  <th class="py-2.5 px-3">Daun (g)</th>
+                  <th class="py-2.5 px-3">Batang (g)</th>
+                  <th class="py-2.5 px-3">Akar (g)</th>
+                  <th class="py-2.5 px-3">KAT (%)</th>
+                  <th class="py-2.5 px-3">WDF</th>
+                  <th class="py-2.5 px-3">CH (mm)</th>
+                  <th class="py-2.5 px-3">ETa (mm)</th>
+                </tr>
+              </thead>
+              <tbody id="tableSimulasiBody" class="divide-y divide-slate-100 font-mono text-[11px]">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 7: PARAMETER MODEL (BESPOKE 2-COLUMN LUXURY MATRIX) ==================== -->
+      <div id="tab-parameter" class="tab-pane hidden space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Konfigurasi Parameter Model Biofisik</h2>
+            <p class="text-xs text-slate-500 font-medium">Kalibrasi fisiologi tanaman tomat, Thermal Units (TU) 5 fase, hidrologi tanah Ritchie, dan kondisi geografis stasiun.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="resetDefaultParameters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 px-4 rounded-xl transition">
+              Reset Default Garut
+            </button>
+            <button id="btnRunParam" onclick="runSimulation('overview', this)" class="bg-brand-teal hover:bg-brand-tealHover text-white font-bold text-xs py-2 px-5 rounded-xl shadow-sm transition active:scale-95 flex items-center space-x-2">
+              <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+              <span>Simpan Parameter & Run</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2-COLUMN SPACIOUS LUXURY PARAMETRIC MATRIX -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- COLUMN 1: FISIOLOGI TANAMAN & THERMAL UNITS (TU) -->
+          <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-6">
+            
+            <!-- Section 1.1: Fisiologi Tanaman -->
+            <div>
+              <div class="flex items-center space-x-2 pb-3 mb-3 border-b border-slate-100">
+                <i data-lucide="leaf" class="w-4 h-4 text-brand-teal"></i>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Fisiologi & Kanopi Tanaman</h3>
+              </div>
+
+              <div class="space-y-3">
+                
+                <!-- k -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Koefisien Pemadaman Tajuk</span>
+                      <span class="font-mono text-[10px] font-bold text-brand-teal bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">k</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Fraksi radiasi yang diintersepsi tajuk daun</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_k" value="0.67" step="0.01" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">-</span>
+                  </div>
+                </div>
+
+                <!-- SLA -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Specific Leaf Area</span>
+                      <span class="font-mono text-[10px] font-bold text-brand-teal bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">SLA</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Luas daun spesifik per gram bahan kering</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_sla" value="203" step="1" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">cm²/g</span>
+                  </div>
+                </div>
+
+                <!-- RUE -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Radiation Use Efficiency</span>
+                      <span class="font-mono text-[10px] font-bold text-brand-teal bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">RUE</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Efisiensi konversi radiasi surya ke biomassa</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_rue" value="1.05" step="0.01" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">g/MJ</span>
+                  </div>
+                </div>
+
+                <!-- Tb -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Suhu Dasar Pertumbuhan</span>
+                      <span class="font-mono text-[10px] font-bold text-brand-teal bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">Tb</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Ambang batas suhu minimal aktivitas tanaman</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_tb" value="10" step="1" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">°C</span>
+                  </div>
+                </div>
+
+                <!-- kg -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Respirasi Pertumbuhan</span>
+                      <span class="font-mono text-[10px] font-bold text-brand-teal bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">kg</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Fraksi sintesis bahan struktural jaringan baru</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_kg" value="0.70" step="0.05" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">-</span>
+                  </div>
+                </div>
+
+                <!-- km -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Respirasi Pemeliharaan</span>
+                      <span class="font-mono text-[10px] font-bold text-brand-teal bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">km</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Biaya metabolisme dasar responsif Q10 suhu</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_km" value="0.00042" step="0.00005" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">/hari</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Section 1.2: Satuan Panas Thermal Units (TU) -->
+            <div>
+              <div class="flex items-center space-x-2 pb-3 mb-3 border-b border-slate-100">
+                <i data-lucide="flame" class="w-4 h-4 text-amber-500"></i>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Thermal Units (TU per Fase Fenologi)</h3>
+              </div>
+
+              <div class="space-y-3">
+                
+                <!-- TU 1 -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Fase 1: Bibit & Perkecambahan</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Target akumulasi panas persemaian bibit</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_tu1" value="324" step="5" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">°C hari</span>
+                  </div>
+                </div>
+
+                <!-- TU 2 -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Fase 2: Vegetatif Cepat</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Ekspansi tajuk dan pembentukan percabangan</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_tu2" value="250" step="5" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">°C hari</span>
+                  </div>
+                </div>
+
+                <!-- TU 3 -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Fase 3: Pembungaan & Fruit-Set</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Inisiasi bunga pertama hingga bakal buah</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_tu3" value="323" step="5" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">°C hari</span>
+                  </div>
+                </div>
+
+                <!-- TU 4 -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Fase 4: Pembesaran Buah</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Pertumbuhan volume dan berat buah hijau</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_tu4" value="298" step="5" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">°C hari</span>
+                  </div>
+                </div>
+
+                <!-- TU 5 -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Fase 5: Pematangan Buah</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Perubahan pigmen likopen hingga siap panen</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_tu5" value="361" step="5" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">°C hari</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- COLUMN 2: HIDROLOGI TANAH RITCHIE & KONDISI GEOGRAFIS -->
+          <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-6">
+            
+            <!-- Section 2.1: Karakteristik Tanah & Neraca Air Ritchie -->
+            <div>
+              <div class="flex items-center space-x-2 pb-3 mb-3 border-b border-slate-100">
+                <i data-lucide="droplet" class="w-4 h-4 text-blue-500"></i>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Karakteristik Tanah & Hidrologi Ritchie</h3>
+              </div>
+
+              <div class="space-y-3">
+                
+                <!-- KL -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Kapasitas Lapang</span>
+                      <span class="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">KL</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Kadar air optimal tanah setelah drainase gravitasi</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_KL" value="0.343" step="0.01" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">fraksi</span>
+                  </div>
+                </div>
+
+                <!-- TLP -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Titik Layu Permanen</span>
+                      <span class="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">TLP</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Batas kelembaban tanah saat tanaman layu permanen</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_TLP" value="0.1108" step="0.001" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">fraksi</span>
+                  </div>
+                </div>
+
+                <!-- Zr -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Kedalaman Perakaran Efektif</span>
+                      <span class="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">Zr</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Zona kedalaman tanah tempat akar menyerap air</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_Zr" value="700" step="50" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">mm</span>
+                  </div>
+                </div>
+
+                <!-- U -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Ambang Evaporasi Tahap 1</span>
+                      <span class="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">U</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Batas kehilangan air Ritchie tahap atmosferik konstan</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_U" value="8.0" step="0.5" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">mm</span>
+                  </div>
+                </div>
+
+                <!-- alpha -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Koefisien Pengeringan Tahap 2</span>
+                      <span class="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">alpha</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Laju pengeringan lambat terkontrol difusivitas tanah</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_alpha" value="3.5" step="0.1" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">mm/√h</span>
+                  </div>
+                </div>
+
+                <!-- Runoff -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs sm:text-sm font-semibold text-slate-800">Fraksi Limpasan Permukaan</span>
+                      <span class="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">Runoff</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Proporsi air hujan yang hilang mengalir di permukaan</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_runoff" value="0.15" step="0.05" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">fraksi</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Section 2.2: Geografis Stasiun & Inisial -->
+            <div>
+              <div class="flex items-center space-x-2 pb-3 mb-3 border-b border-slate-100">
+                <i data-lucide="compass" class="w-4 h-4 text-emerald-600"></i>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Geografis Stasiun & Kondisi Awal</h3>
+              </div>
+
+              <div class="space-y-3">
+                
+                <!-- Alt -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Ketinggian Tempat (Elevasi)</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Elevasi stasiun di atas permukaan laut</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_Alt" value="717" step="10" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">m dpl</span>
+                  </div>
+                </div>
+
+                <!-- Lat -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Lintang Wilayah Geografis</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Koordinat astronomis untuk radiasi surya ekstraterestrial</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_Lat" value="-7.3895" step="0.01" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">° LU/LS</span>
+                  </div>
+                </div>
+
+                <!-- KAT Awal -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Kadar Air Tanah Inisial</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Kondisi kelembaban tanah saat tanam (HST 0)</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_KATawal" value="0.13" step="0.01" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">fraksi</span>
+                  </div>
+                </div>
+
+                <!-- LAI Awal -->
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 transition group">
+                  <div class="flex-1 min-w-0 pr-3">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">Indeks Luas Daun Awal</span>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Luas daun bibit per luas lahan saat HST 1</p>
+                  </div>
+                  <div class="flex items-center bg-slate-50/90 border border-slate-200/80 group-hover:border-slate-300 focus-within:border-brand-teal focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-teal/20 rounded-xl px-2.5 py-1.5 transition w-36">
+                    <input type="number" id="param_LAI_awal" value="1.2" step="0.1" class="w-full bg-transparent text-right font-mono font-bold text-xs text-slate-900 outline-none pr-1">
+                    <span class="text-[10px] font-semibold text-slate-400 border-l border-slate-200 pl-1.5 whitespace-nowrap">m²/m²</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Live Preview of Last Result on Parameter Page -->
+        <div class="p-4 bg-emerald-50/80 border border-emerald-200/70 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center space-x-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-slate-600 font-semibold">Hasil Model Terkini:</span>
+            <span id="paramResultPreview" class="font-bold text-brand-teal font-mono">0.296 ton BK/ha • 110 HST</span>
+          </div>
+          <button onclick="switchTab('overview')" class="text-brand-teal font-bold hover:underline text-xs flex items-center space-x-1">
+            <span>Buka Halaman Grafik & Hasil Lengkap →</span>
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ==================== MODAL ANGGOTA KELOMPOK 3 (MSP) ==================== -->
+  <div id="teamModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-5 animate-in fade-in zoom-in duration-150 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-start pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
+            <span>Kelompok 3 • Model Simulasi Pertanian</span>
+          </h3>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">
+            Departemen Geofisika dan Meteorologi • FMIPA IPB University
+          </p>
+        </div>
+        <button onclick="closeTeamModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Student Members List (10 Orang) -->
+      <div>
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Anggota Tim Praktikan (10 Orang)</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">01</div>
+            <div>
+              <p class="font-bold text-slate-800">Ekane Susiana</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241011</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">02</div>
+            <div>
+              <p class="font-bold text-slate-800">Nurul Wardah</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241012</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">03</div>
+            <div>
+              <p class="font-bold text-slate-800">M. Habib Ismail Ilham</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241020</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">04</div>
+            <div>
+              <p class="font-bold text-slate-800">Hanifah Q. A. Suwarno</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241029</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">05</div>
+            <div>
+              <p class="font-bold text-slate-800">Diva Khaerunnisa</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241044</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">06</div>
+            <div>
+              <p class="font-bold text-slate-800">Celine Alecia Tanasha</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241049</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">07</div>
+            <div>
+              <p class="font-bold text-slate-800">Puput Dwiyanti N.</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241060</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">08</div>
+            <div>
+              <p class="font-bold text-slate-800">Kezia Regina</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241063</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">09</div>
+            <div>
+              <p class="font-bold text-slate-800">Arrafi Radityo Jatmiko</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241070</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-brand-teal font-extrabold text-[11px] flex items-center justify-center font-mono">10</div>
+            <div>
+              <p class="font-bold text-slate-800">Annisa Eka Ardani</p>
+              <p class="text-[11px] font-mono text-slate-400">G2401241074</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Dosen Pembimbing -->
+      <div class="p-3.5 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
+        <h4 class="text-xs font-bold text-brand-teal uppercase tracking-wider mb-1">Dosen Pembimbing</h4>
+        <p class="text-xs font-semibold text-slate-800 leading-relaxed">
+          1. Impron, M. Sc.<br>
+          2. Yon Sugiarto, M. Sc.
+        </p>
+      </div>
+
+      <div class="flex justify-end pt-1">
+        <button onclick="closeTeamModal()" class="px-5 py-2 rounded-xl text-xs font-bold bg-brand-teal text-white hover:bg-brand-tealHover transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL TENTANG MODEL & REFERENSI ==================== -->
+  <div id="aboutModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[88vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-extrabold text-slate-900">Tentang Model Biofisik Tanaman Tomat</h3>
+        <button onclick="closeAboutModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-600 leading-relaxed space-y-3">
+        <p>
+          <b>Tomat (<i>Solanum lycopersicum</i> L.)</b> adalah tanaman bernilai ekonomi dan gizi tinggi yang tumbuh optimal pada suhu 20-28 °C, tanah berdrainase baik, dan curah hujan sedang.
+        </p>
+
+        <!-- Diagram Alir Biofisik Mini -->
+        <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-2xl">
+          <h4 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2.5">Arsitektur Aliran Simulasi Biofisik</h4>
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[10px] font-bold text-center">
+            <div class="bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-xs w-full">Iklim Harian<br><span class="text-slate-400 font-normal">Suhu, RH, Rs, CH</span></div>
+            <span class="text-slate-400 font-bold hidden sm:inline">→</span>
+            <div class="bg-emerald-50 text-emerald-900 px-2.5 py-2 rounded-xl border border-emerald-200 w-full">Thermal Units<br><span class="text-emerald-700 font-normal">5 Fase Fenologi</span></div>
+            <span class="text-slate-400 font-bold hidden sm:inline">→</span>
+            <div class="bg-blue-50 text-blue-900 px-2.5 py-2 rounded-xl border border-blue-200 w-full">Neraca Air<br><span class="text-blue-700 font-normal">FAO-56 & Ritchie</span></div>
+            <span class="text-slate-400 font-bold hidden sm:inline">→</span>
+            <div class="bg-rose-50 text-rose-900 px-2.5 py-2 rounded-xl border border-rose-200 w-full">Partisi Biomassa<br><span class="text-rose-700 font-normal">Buah, Daun, Batang</span></div>
+          </div>
+        </div>
+
+        <ul class="list-disc pl-4 space-y-1.5 text-slate-700 font-medium">
+          <li><b>Satuan Panas (Thermal Units):</b> Akumulasi panas harian (suhu dasar 10 °C) untuk memprediksi transisi fase bibit, vegetatif, pembungaan, pembesaran buah, hingga pematangan.</li>
+          <li><b>Evapotranspirasi & Neraca Air:</b> Kombinasi standar FAO-56 Penman-Monteith untuk ETo dan model Ritchie dua-tahap untuk evaporasi tanah aktual serta faktor cekaman air (WDF).</li>
+          <li><b>Asimilasi Radiasi (Monteith RUE):</b> Penangkapan radiasi aktif fotosintesis oleh kanopi daun dengan koreksi cekaman air harian.</li>
+          <li><b>Respirasi & Alokasi Karbon:</b> Respirasi pertumbuhan (kg) dan respirasi pemeliharaan (km Q10) suhu-responsif dengan alokasi partisi biomassa organ.</li>
+        </ul>
+
+        <div class="pt-2.5 border-t border-slate-100 text-[11px] text-slate-500 space-y-1">
+          <p class="font-bold text-slate-700">Referensi Ilmiah Standar:</p>
+          <p class="italic">Allen RG, Pereira LS, Raes D, Smith M. 1998. Crop evapotranspiration: Guidelines for computing crop water requirements. FAO Irrigation and drainage paper 56.</p>
+          <p class="italic">Ritchie JT. 1972. Model for predicting evaporation from a row crop with incomplete cover. Water Resources Research.</p>
+          <p class="italic">Monteith JL. 1977. Climate and the efficiency of crop production in Britain. Phil. Trans. R. Soc. Lond. B.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-1">
+        <button onclick="closeAboutModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== UPLOAD MODAL (WITH DRAG & DROP) ==================== -->
+  <div id="uploadModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
+          <span>Upload Dataset Iklim</span>
+        </h3>
+        <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 leading-relaxed">
+        Unggah file data iklim harian (format <b>.xlsx, .xls</b> atau <b>.csv</b>). Kolom: <i>tgl, suhu, rh, ch, Rs, angin</i> (dideteksi otomatis).
+      </p>
+
+      <!-- Drag & Drop Zone -->
+      <div id="dropZone" 
+           ondragover="handleDragOver(event)" 
+           ondragleave="handleDragLeave(event)" 
+           ondrop="handleDrop(event)"
+           onclick="document.getElementById('fileInput').click()" 
+           class="border-2 border-dashed border-emerald-300 hover:border-brand-teal bg-emerald-50/40 rounded-2xl p-6 text-center cursor-pointer transition">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0])" class="hidden">
+        <div class="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto text-brand-teal mb-2">
+          <i data-lucide="file-up" class="w-5 h-5"></i>
+        </div>
+        <p class="text-xs font-bold text-slate-800">Pilih file atau drag & drop ke sini</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">Misal: data iklim 1999 - 2020</p>
+      </div>
+
+      <div id="uploadStatus" class="hidden p-3 rounded-2xl text-xs font-semibold"></div>
+
+      <div class="flex justify-end pt-1">
+        <button onclick="closeUploadModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Controller -->
+  <script>
+    let currentSimulation = null;
+    let mainChartInstance = null;
+    let currentMainMetric = 'buah';
+
+    // Init Lucide
+    lucide.createIcons();
+
+    // Mobile Sidebar Toggle
+    function toggleMobileSidebar() {
+      const sb = document.getElementById('mainSidebar');
+      const bd = document.getElementById('mobileBackdrop');
+      const isClosed = sb.classList.contains('-translate-x-full');
+      if (isClosed) {
+        sb.classList.remove('-translate-x-full');
+        bd.classList.remove('hidden');
+      } else {
+        sb.classList.add('-translate-x-full');
+        bd.classList.add('hidden');
+      }
+    }
+
+    // Tab Switcher with Auto Active Indicator
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+      const activePane = document.getElementById('tab-' + tabId);
+      if (activePane) activePane.classList.remove('hidden');
+
+      let targetBtn = el;
+      if (!targetBtn) {
+        targetBtn = document.querySelector(`.sidebar-tab[onclick*="'${tabId}'"]`);
+      }
+      if (targetBtn) {
+        document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+        targetBtn.classList.add('active');
+      }
+
+      // Close mobile drawer if opened
+      const sb = document.getElementById('mainSidebar');
+      if (window.innerWidth < 1024 && !sb.classList.contains('-translate-x-full')) {
+        toggleMobileSidebar();
+      }
+
+      const mainCanvas = document.querySelector('main');
+      if (mainCanvas) mainCanvas.scrollTop = 0;
+
+      if (tabId === 'overview') renderMainChart();
+      if (tabId === 'biomassa') renderBiomassaDetail();
+      if (tabId === 'neraca-air') renderNeracaAirDetail();
+      if (tabId === 'skenario') renderSkenarioChart();
+      if (tabId === 'validasi') loadValidationData();
+    }
+
+    // Modals
+    function openTeamModal() { document.getElementById('teamModal').classList.remove('hidden'); }
+    function closeTeamModal() { document.getElementById('teamModal').classList.add('hidden'); }
+
+    function openAboutModal() { document.getElementById('aboutModal').classList.remove('hidden'); }
+    function closeAboutModal() { document.getElementById('aboutModal').classList.add('hidden'); }
+
+    function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
+    function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+
+    // Drag & Drop
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('dropZone').classList.add('border-brand-teal', 'bg-emerald-100/60');
+    }
+    function handleDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('dropZone').classList.remove('border-brand-teal', 'bg-emerald-100/60');
+    }
+    function handleDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('dropZone').classList.remove('border-brand-teal', 'bg-emerald-100/60');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFileUpload(e.dataTransfer.files[0]);
+      }
+    }
+
+    // Sliders
+    function updateScenarioSliders() {
+      const ps = parseFloat(document.getElementById('sliderSuhu').value).toFixed(1);
+      const prh = parseInt(document.getElementById('sliderRH').value);
+      const pch = parseInt(document.getElementById('sliderCH').value);
+
+      document.getElementById('lblSuhu').textContent = (ps >= 0 ? '+' : '') + ps + ' °C';
+      document.getElementById('lblRH').textContent = (prh >= 0 ? '+' : '') + prh + ' %';
+      document.getElementById('lblCH').textContent = (pch >= 0 ? '+' : '') + pch + ' mm';
+    }
+
+    // Dataset Change Listener
+    function onDatasetChange() {
+      const src = document.getElementById('datasetSource').value;
+      if (src === 'custom') {
+        openUploadModal();
+      } else {
+        if (src === 'bogor') {
+          const altEl = document.getElementById('param_Alt');
+          const latEl = document.getElementById('param_Lat');
+          if (altEl) altEl.value = 260;
+          if (latEl) latEl.value = -6.5950;
+        } else if (src === 'garut') {
+          const altEl = document.getElementById('param_Alt');
+          const latEl = document.getElementById('param_Lat');
+          if (altEl) altEl.value = 717;
+          if (latEl) latEl.value = -7.3895;
+        }
+        runSimulation();
+      }
+    }
+
+    // File Upload
+    async function handleFileUpload(file) {
+      if (!file) return;
+      const statusDiv = document.getElementById('uploadStatus');
+      statusDiv.className = 'p-3 rounded-2xl text-xs font-semibold bg-blue-50 text-blue-700 block';
+      statusDiv.innerHTML = 'Memproses data iklim...';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.status === 'success') {
+          statusDiv.className = 'p-3 rounded-2xl text-xs font-semibold bg-emerald-50 text-emerald-800 block';
+          statusDiv.innerHTML = `Berhasil! Rentang: ${data.date_min} s.d. ${data.date_max} (${data.rows} hari).`;
+          
+          const tglInput = document.getElementById('tglTanam');
+          tglInput.min = data.date_min;
+          tglInput.max = data.date_max;
+          tglInput.value = data.date_min;
+
+          document.getElementById('datasetSource').value = 'custom';
+          setTimeout(() => {
+            closeUploadModal();
+            runSimulation();
+          }, 1000);
+        } else {
+          statusDiv.className = 'p-3 rounded-2xl text-xs font-semibold bg-rose-50 text-rose-700 block';
+          statusDiv.innerHTML = `Error: ${data.detail || 'Format file salah'}`;
+        }
+      } catch (err) {
+        statusDiv.className = 'p-3 rounded-2xl text-xs font-semibold bg-rose-50 text-rose-700 block';
+        statusDiv.innerHTML = `Error: ${err.message}`;
+      }
+    }
+
+    // Direct Download Export
+    async function downloadExport(format) {
+      if (!currentSimulation) {
+        showToast('Jalankan simulasi terlebih dahulu sebelum mengunduh laporan.', 'error');
+        return;
+      }
+      showToast(`Sedang menyiapkan file ${format.toUpperCase()}...`);
+      try {
+        const res = await fetch(`/api/export/${format}`);
+        if (!res.ok) throw new Error('Gagal mengunduh file.');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const stamp = new Date().toISOString().slice(0, 10);
+        a.download = `simulasi_tomat_${format}_${stamp}.${format === 'excel' ? 'xlsx' : 'csv'}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        showToast(`Berhasil mengunduh laporan ${format.toUpperCase()}!`);
+      } catch (err) {
+        showToast(`Gagal mengunduh file: ${err.message}`, 'error');
+      }
+    }
+
+    // Set Main Chart Metric Toggle
+    function setMainChartMetric(metric, btn) {
+      currentMainMetric = metric;
+      document.querySelectorAll('.chart-metric-btn').forEach(b => {
+        b.className = 'chart-metric-btn px-3.5 py-1.5 rounded-xl hover:text-slate-900 transition';
+      });
+      btn.className = 'chart-metric-btn active bg-white text-brand-teal shadow-sm px-3.5 py-1.5 rounded-xl transition';
+      renderMainChart();
+    }
+
+    // Reset Parameters to Default
+    function resetDefaultParameters() {
+      document.getElementById('param_k').value = 0.67;
+      document.getElementById('param_sla').value = 203;
+      document.getElementById('param_rue').value = 1.05;
+      document.getElementById('param_tb').value = 10;
+      document.getElementById('param_kg').value = 0.70;
+      document.getElementById('param_km').value = 0.00042;
+      document.getElementById('param_tu1').value = 324;
+      document.getElementById('param_tu2').value = 250;
+      document.getElementById('param_tu3').value = 323;
+      document.getElementById('param_tu4').value = 298;
+      document.getElementById('param_tu5').value = 361;
+      document.getElementById('param_KL').value = 0.343;
+      document.getElementById('param_TLP').value = 0.1108;
+      document.getElementById('param_Zr').value = 700;
+      document.getElementById('param_U').value = 8.0;
+      document.getElementById('param_alpha').value = 3.5;
+      document.getElementById('param_runoff').value = 0.15;
+      document.getElementById('param_Alt').value = 717;
+      document.getElementById('param_Lat').value = -7.3895;
+      document.getElementById('param_KATawal').value = 0.13;
+      document.getElementById('param_LAI_awal').value = 1.2;
+      runSimulation();
+    }
+
+    // Toast Notification Helper
+    let toastTimeout = null;
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      if (!toast || !msgEl) return;
+      
+      msgEl.textContent = msg;
+      if (type === 'error') {
+        iconEl.className = 'w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold text-xs';
+        iconEl.textContent = '✕';
+      } else {
+        iconEl.className = 'w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs';
+        iconEl.textContent = '✓';
+      }
+
+      toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+      }, 3500);
+    }
+
+    // Run Simulation
+    async function runSimulation(switchToTab = null, btn = null) {
+      let origBtnText = '';
+      if (btn) {
+        origBtnText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menghitung...`;
+      }
+
+      const overlay = document.getElementById('chartLoadingOverlay');
+      if (overlay) overlay.classList.remove('opacity-0', 'pointer-events-none');
+
+      const source = document.getElementById('datasetSource').value;
+      const tgl_tanam = document.getElementById('tglTanam').value;
+      const psuhu = parseFloat(document.getElementById('sliderSuhu').value) || 0;
+      const prh = parseFloat(document.getElementById('sliderRH').value) || 0;
+      const pch = parseFloat(document.getElementById('sliderCH').value) || 0;
+
+      const params = {
+        k: parseFloat(document.getElementById('param_k')?.value || 0.67),
+        sla: parseFloat(document.getElementById('param_sla')?.value || 203),
+        rue: parseFloat(document.getElementById('param_rue')?.value || 1.05),
+        tb: parseFloat(document.getElementById('param_tb')?.value || 10),
+        kg: parseFloat(document.getElementById('param_kg')?.value || 0.70),
+        km: parseFloat(document.getElementById('param_km')?.value || 0.00042),
+        tu1: parseFloat(document.getElementById('param_tu1')?.value || 324),
+        tu2: parseFloat(document.getElementById('param_tu2')?.value || 250),
+        tu3: parseFloat(document.getElementById('param_tu3')?.value || 323),
+        tu4: parseFloat(document.getElementById('param_tu4')?.value || 298),
+        tu5: parseFloat(document.getElementById('param_tu5')?.value || 361),
+        KL: parseFloat(document.getElementById('param_KL')?.value || 0.343),
+        TLP: parseFloat(document.getElementById('param_TLP')?.value || 0.1108),
+        Zr: parseFloat(document.getElementById('param_Zr')?.value || 700),
+        U: parseFloat(document.getElementById('param_U')?.value || 8.0),
+        alpha: parseFloat(document.getElementById('param_alpha')?.value || 3.5),
+        runoff_frac: parseFloat(document.getElementById('param_runoff')?.value || 0.15),
+        Alt: parseFloat(document.getElementById('param_Alt')?.value || 717),
+        Lat: parseFloat(document.getElementById('param_Lat')?.value || -7.3895),
+        KATawal: parseFloat(document.getElementById('param_KATawal')?.value || 0.13),
+        LAI_awal: parseFloat(document.getElementById('param_LAI_awal')?.value || 1.2)
+      };
+
+      try {
+        const res = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ source, tgl_tanam, psuhu, prh, pch, params })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(`Gagal: ${data.detail || 'Data iklim tidak mencukupi.'}`, 'error');
+          return;
+        }
+
+        currentSimulation = data;
+        updateUI(data);
+
+        const s = data.summary;
+        showToast(`Model Berhasil Dijalankan! Panen: ${s.prod_buah_ton_ha.toFixed(3)} ton/ha (${s.hst_panen} HST)`);
+
+        const prevEl = document.getElementById('paramResultPreview');
+        if (prevEl) {
+          prevEl.textContent = `${s.prod_buah_ton_ha.toFixed(3)} ton BK/ha • ${s.hst_panen} HST`;
+        }
+
+        if (switchToTab) {
+          switchTab(switchToTab);
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('Gagal menjalankan model. Periksa koneksi server.', 'error');
+      } finally {
+        if (overlay) overlay.classList.add('opacity-0', 'pointer-events-none');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origBtnText;
+          lucide.createIcons();
+        }
+      }
+    }
+
+    // Update UI Elements
+    function updateUI(data) {
+      const s = data.summary;
+      const d = data.daily;
+      const base = data.baseline_summary || s;
+
+      document.getElementById('periodText').textContent = `HST 1 (${d.Tanggal[0]}) - HST ${s.hst_panen} (${s.tanggal_panen})`;
+      
+      // Floating KPI Badge
+      document.getElementById('kpiBuahValue').innerHTML = `${s.prod_buah_ton_ha.toFixed(3)} <span class="text-xs font-semibold text-slate-500">ton/ha</span>`;
+      document.getElementById('kpiBuahSubtitle').textContent = 'Produksi Buah Masak';
+
+      // Organ Rows
+      document.getElementById('rowBuahGram').textContent = s.biomassa_buah_g.toFixed(2) + ' g';
+      document.getElementById('rowBuahTon').textContent = s.prod_buah_ton_ha.toFixed(3) + ' ton/ha';
+
+      document.getElementById('rowDaunGram').textContent = s.biomassa_daun_g.toFixed(2) + ' g';
+      document.getElementById('rowDaunTon').textContent = s.prod_daun_ton_ha.toFixed(3) + ' ton/ha';
+      document.getElementById('badgeLAI').textContent = 'LAI ' + s.lai_maks.toFixed(2);
+
+      document.getElementById('rowBatangGram').textContent = s.biomassa_batang_g.toFixed(2) + ' g';
+      document.getElementById('rowBatangTon').textContent = s.prod_batang_ton_ha.toFixed(3) + ' ton/ha';
+
+      document.getElementById('rowAkarGram').textContent = s.biomassa_akar_g.toFixed(2) + ' g';
+      document.getElementById('rowAkarTon').textContent = s.prod_akar_ton_ha.toFixed(3) + ' ton/ha';
+
+      // Dynamic Organ Status Badges
+      const bBuah = document.getElementById('badgeStatusBuah');
+      if (bBuah) {
+        if (s.prod_buah_ton_ha >= 0.25) {
+          bBuah.className = 'bg-brand-softMint text-brand-mintText text-xs font-bold px-3 py-1 rounded-full';
+          bBuah.textContent = 'Optimal';
+        } else {
+          bBuah.className = 'bg-brand-softAmber text-brand-amberText text-xs font-bold px-3 py-1 rounded-full';
+          bBuah.textContent = 'Terbatas Air';
+        }
+      }
+
+      // Dynamic Water Balance Card
+      document.getElementById('cardWDFVal').textContent = s.rata_wdf.toFixed(3);
+      const wdfDesc = document.getElementById('cardWDFDesc');
+      const wdfPill = document.getElementById('badgeWDFPill');
+      const wdfBar = document.getElementById('wdfProgressBar');
+
+      const pct = Math.min(100, Math.max(0, s.rata_wdf * 100));
+      if (wdfBar) wdfBar.style.width = pct + '%';
+
+      if (wdfDesc && wdfPill) {
+        if (s.rata_wdf >= 0.8) {
+          wdfPill.className = 'text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
+          wdfPill.textContent = 'Kondisi Optimal';
+          wdfDesc.textContent = 'Ketersediaan air tanah di zona perakaran optimal untuk fotosintesis harian tanpa gejala cekaman.';
+        } else if (s.rata_wdf >= 0.5) {
+          wdfPill.className = 'text-[10px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full';
+          wdfPill.textContent = 'Defisit Ringan';
+          wdfDesc.textContent = 'Kadar air tanah mulai mendekati ambang kritis. Disarankan irigasi suplemen untuk menjaga laju transpirasi.';
+        } else {
+          wdfPill.className = 'text-[10px] font-extrabold text-rose-800 bg-rose-100 px-2 py-0.5 rounded-full';
+          wdfPill.textContent = 'Cekaman Kritis';
+          wdfDesc.textContent = 'Cekaman air signifikan terdeteksi (WDF < 0.5). Perlu tindakan irigasi segera guna mencegah penurunan hasil buah.';
+        }
+      }
+
+      // Scenario comparison updates
+      document.getElementById('compHST').textContent = `${s.hst_panen} HST`;
+      const diffHST = s.hst_panen - base.hst_panen;
+      document.getElementById('compHSTDelta').textContent = diffHST === 0 ? 'Sama dengan baseline' : (diffHST > 0 ? `+${diffHST} hari (terlambat)` : `${diffHST} hari (panen maju)`);
+      document.getElementById('compHSTDelta').className = diffHST === 0 ? 'text-[11px] font-bold text-slate-500 mt-0.5' : (diffHST < 0 ? 'text-[11px] font-bold text-amber-600 mt-0.5' : 'text-[11px] font-bold text-blue-600 mt-0.5');
+
+      document.getElementById('compBuah').textContent = `${s.prod_buah_ton_ha.toFixed(3)} t/ha`;
+      const diffBuah = s.prod_buah_ton_ha - base.prod_buah_ton_ha;
+      document.getElementById('compBuahDelta').textContent = diffBuah === 0 ? 'Sama dengan baseline' : (diffBuah > 0 ? `+${diffBuah.toFixed(3)} ton/ha (naik)` : `${diffBuah.toFixed(3)} ton/ha (turun)`);
+      document.getElementById('compBuahDelta').className = diffBuah === 0 ? 'text-[11px] font-bold text-slate-500 mt-0.5' : (diffBuah > 0 ? 'text-[11px] font-bold text-emerald-600 mt-0.5' : 'text-[11px] font-bold text-rose-600 mt-0.5');
+
+      // compETa & Delta
+      document.getElementById('compETa').textContent = `${s.total_eta_mm.toFixed(1)} mm`;
+      const diffETa = s.total_eta_mm - base.total_eta_mm;
+      const compETaDeltaEl = document.getElementById('compETaDelta');
+      if (compETaDeltaEl) {
+        if (Math.abs(diffETa) < 0.1) {
+          compETaDeltaEl.textContent = 'Sama dengan baseline';
+          compETaDeltaEl.className = 'text-[11px] font-bold text-slate-500 mt-0.5';
+        } else {
+          compETaDeltaEl.textContent = `${diffETa > 0 ? '+' : ''}${diffETa.toFixed(1)} mm (${diffETa > 0 ? 'naik' : 'turun'})`;
+          compETaDeltaEl.className = diffETa > 0 ? 'text-[11px] font-bold text-blue-600 mt-0.5' : 'text-[11px] font-bold text-amber-600 mt-0.5';
+        }
+      }
+
+      // compWUE & Delta
+      document.getElementById('compWUE').textContent = `${s.rata_wue.toFixed(3)} g/L`;
+      const diffWUE = s.rata_wue - base.rata_wue;
+      const compWUEDeltaEl = document.getElementById('compWUEDelta');
+      if (compWUEDeltaEl) {
+        if (Math.abs(diffWUE) < 0.005) {
+          compWUEDeltaEl.textContent = 'Sama dengan baseline';
+          compWUEDeltaEl.className = 'text-[11px] font-bold text-slate-500 mt-0.5';
+        } else {
+          compWUEDeltaEl.textContent = `${diffWUE > 0 ? '+' : ''}${diffWUE.toFixed(3)} g/L (${diffWUE > 0 ? 'lebih efisien' : 'kurang efisien'})`;
+          compWUEDeltaEl.className = diffWUE > 0 ? 'text-[11px] font-bold text-emerald-600 mt-0.5' : 'text-[11px] font-bold text-rose-600 mt-0.5';
+        }
+      }
+
+      renderMainChart();
+      populateTable(d);
+      renderSkenarioChart();
+    }
+
+    // Render Main Chart
+    function renderMainChart() {
+      if (!currentSimulation) return;
+      const ctx = document.getElementById('mainChart').getContext('2d');
+      const daily = currentSimulation.daily;
+
+      const count = 14;
+      const step = Math.floor(daily.HST.length / count);
+      const sampledIndices = [];
+      for (let i = 0; i < count; i++) {
+        const idx = Math.min(i * step, daily.HST.length - 1);
+        sampledIndices.push(idx);
+      }
+
+      const labels = sampledIndices.map(i => 'H' + daily.HST[i]);
+      if (mainChartInstance) mainChartInstance.destroy();
+
+      let datasets = [];
+
+      if (currentMainMetric === 'buah') {
+        const values = sampledIndices.map(i => daily.ProdBuah_tonBK_ha[i]);
+        const highlightIndex = sampledIndices.length - 2;
+        const bgColors = values.map((_, i) => i === highlightIndex ? '#FCD34D' : '#BAE6FD');
+        const hoverColors = values.map((_, i) => i === highlightIndex ? '#FBBF24' : '#7DD3FC');
+
+        datasets = [{
+          type: 'bar',
+          label: 'Buah (ton BK/ha)',
+          data: values,
+          backgroundColor: bgColors,
+          hoverBackgroundColor: hoverColors,
+          borderRadius: 8,
+          borderSkipped: false,
+          barPercentage: 0.55
+        }];
+      } else if (currentMainMetric === 'biomassa') {
+        datasets = [
+          { type: 'line', label: 'Buah (g)', data: sampledIndices.map(i => daily.Buah[i]), borderColor: '#F43F5E', borderWidth: 2.5, pointRadius: 3, tension: 0.3 },
+          { type: 'line', label: 'Daun (g)', data: sampledIndices.map(i => daily.Daun[i]), borderColor: '#10B981', borderWidth: 2.2, pointRadius: 0, tension: 0.3 },
+          { type: 'line', label: 'Batang (g)', data: sampledIndices.map(i => daily.Batang[i]), borderColor: '#0284C7', borderWidth: 2.2, pointRadius: 0, tension: 0.3 }
+        ];
+      } else if (currentMainMetric === 'lai') {
+        datasets = [{
+          type: 'line',
+          label: 'Leaf Area Index (LAI)',
+          data: sampledIndices.map(i => daily.LAI[i]),
+          borderColor: '#059669',
+          backgroundColor: 'rgba(5, 150, 105, 0.08)',
+          fill: true,
+          tension: 0.3,
+          borderWidth: 2.5
+        }];
+      } else if (currentMainMetric === 'neraca') {
+        datasets = [
+          { type: 'bar', label: 'Curah Hujan (mm)', data: sampledIndices.map(i => daily.CH[i]), backgroundColor: '#BAE6FD', borderRadius: 6, yAxisID: 'y1' },
+          { type: 'line', label: 'KAT (% vol)', data: sampledIndices.map(i => daily.KAT_persen[i]), borderColor: '#0284C7', borderWidth: 2.5, pointRadius: 3, yAxisID: 'y' }
+        ];
+      }
+
+      mainChartInstance = new Chart(ctx, {
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: currentMainMetric !== 'buah',
+              position: 'top',
+              labels: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
+            },
+            tooltip: {
+              backgroundColor: '#0F172A',
+              titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '700' },
+              bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
+              padding: 10,
+              cornerRadius: 12
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }, color: '#94A3B8' },
+              border: { display: false }
+            },
+            y: {
+              grid: { color: '#F1F5F9' },
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' }, color: '#94A3B8' },
+              border: { display: false }
+            },
+            y1: currentMainMetric === 'neraca' ? {
+              position: 'right',
+              grid: { display: false },
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#60A5FA' }
+            } : undefined
+          }
+        }
+      });
+    }
+
+    // Detail Charts for Biomassa Tab
+    let chartBiomassaInst = null;
+    let chartLAIInst = null;
+
+    function renderBiomassaDetail() {
+      if (!currentSimulation) return;
+      const d = currentSimulation.daily;
+
+      const ctxBio = document.getElementById('chartBiomassaDetail').getContext('2d');
+      if (chartBiomassaInst) chartBiomassaInst.destroy();
+      chartBiomassaInst = new Chart(ctxBio, {
+        type: 'line',
+        data: {
+          labels: d.HST.map(h => 'H' + h),
+          datasets: [
+            { label: 'Buah (g)', data: d.Buah, borderColor: '#F43F5E', borderWidth: 2.2, pointRadius: 0, tension: 0.3 },
+            { label: 'Daun (g)', data: d.Daun, borderColor: '#10B981', borderWidth: 2.2, pointRadius: 0, tension: 0.3 },
+            { label: 'Batang (g)', data: d.Batang, borderColor: '#0284C7', borderWidth: 2.2, pointRadius: 0, tension: 0.3 },
+            { label: 'Akar (g)', data: d.Akar, borderColor: '#F59E0B', borderWidth: 2, pointRadius: 0, tension: 0.3 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+      });
+
+      const ctxLai = document.getElementById('chartLAIDetail').getContext('2d');
+      if (chartLAIInst) chartLAIInst.destroy();
+      chartLAIInst = new Chart(ctxLai, {
+        type: 'line',
+        data: {
+          labels: d.HST.map(h => 'H' + h),
+          datasets: [{ label: 'LAI', data: d.LAI, borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.08)', fill: true, pointRadius: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    // Detail Charts for Neraca Air Tab
+    let chartKATInst = null;
+    let chartETInst = null;
+
+    function renderNeracaAirDetail() {
+      if (!currentSimulation) return;
+      const d = currentSimulation.daily;
+
+      const ctxKat = document.getElementById('chartKATDetail').getContext('2d');
+      if (chartKATInst) chartKATInst.destroy();
+      chartKATInst = new Chart(ctxKat, {
+        data: {
+          labels: d.HST.map(h => 'H' + h),
+          datasets: [
+            { type: 'line', label: 'KAT (% vol)', data: d.KAT_persen, borderColor: '#0284C7', borderWidth: 2, pointRadius: 0 },
+            { type: 'bar', label: 'Hujan (mm)', data: d.CH, backgroundColor: '#BAE6FD', yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { title: { display: true, text: 'KAT (%)' } },
+            y1: { position: 'right', grid: { display: false }, title: { display: true, text: 'Hujan (mm)' } }
+          }
+        }
+      });
+
+      const ctxEt = document.getElementById('chartETDetail').getContext('2d');
+      if (chartETInst) chartETInst.destroy();
+      chartETInst = new Chart(ctxEt, {
+        type: 'line',
+        data: {
+          labels: d.HST.map(h => 'H' + h),
+          datasets: [
+            { label: 'ETo', data: d.ETo, borderColor: '#94A3B8', borderWidth: 1.5, pointRadius: 0 },
+            { label: 'ETc', data: d.ETc, borderColor: '#F59E0B', borderWidth: 2, pointRadius: 0 },
+            { label: 'ETa', data: d.ETa, borderColor: '#0A594E', borderWidth: 2.5, pointRadius: 0 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    // Skenario Comparison Chart
+    let chartSkenarioInst = null;
+    function renderSkenarioChart() {
+      if (!currentSimulation) return;
+      const ctx = document.getElementById('chartSkenarioKomparasi');
+      if (!ctx) return;
+
+      const d = currentSimulation.daily;
+      const baseDaily = currentSimulation.baseline_daily || d;
+
+      const maxLen = Math.max(d.HST.length, baseDaily.HST.length);
+      const labels = Array.from({ length: maxLen }, (_, i) => 'H' + (i + 1));
+
+      if (chartSkenarioInst) chartSkenarioInst.destroy();
+      chartSkenarioInst = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Buah (Skenario)',
+              data: d.ProdBuah_tonBK_ha,
+              borderColor: '#F43F5E',
+              borderWidth: 2.5,
+              tension: 0.3,
+              pointRadius: 0
+            },
+            {
+              label: 'Buah (Baseline)',
+              data: baseDaily.Buah || baseDaily.ProdBuah_tonBK_ha,
+              borderColor: '#94A3B8',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.3,
+              pointRadius: 0
+            },
+            {
+              label: 'LAI (Skenario)',
+              data: d.LAI,
+              borderColor: '#10B981',
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 0
+            },
+            {
+              label: 'LAI (Baseline)',
+              data: baseDaily.LAI,
+              borderColor: '#CBD5E1',
+              borderWidth: 1.5,
+              borderDash: [4, 4],
+              tension: 0.3,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } } }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    // Validation Tab Data & Chart
+    let chartValidasiInst = null;
+    async function loadValidationData() {
+      try {
+        const res = await fetch('/api/validation');
+        const data = await res.json();
+        
+        if (currentSimulation) {
+          const s = currentSimulation.summary;
+          document.getElementById('valDaunSim').textContent = s.biomassa_daun_g.toFixed(1) + ' g';
+          document.getElementById('valBatangSim').textContent = s.biomassa_batang_g.toFixed(1) + ' g';
+          document.getElementById('valBuahSim').textContent = s.biomassa_buah_g.toFixed(1) + ' g';
+          document.getElementById('valAkarSim').textContent = s.biomassa_akar_g.toFixed(1) + ' g';
+
+          // Status Badges
+          const setStat = (id, simVal, minVal, maxVal) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (simVal >= minVal && simVal <= maxVal) {
+              el.className = 'text-[10px] font-bold text-emerald-600';
+              el.textContent = '✓ Masuk Rentang';
+            } else if (simVal < minVal) {
+              const diff = (((simVal - minVal) / minVal) * 100).toFixed(0);
+              el.className = 'text-[10px] font-bold text-amber-600';
+              el.textContent = `${diff}% dari batas min`;
+            } else {
+              const diff = (((simVal - maxVal) / maxVal) * 100).toFixed(0);
+              el.className = 'text-[10px] font-bold text-blue-600';
+              el.textContent = `+${diff}% dari batas max`;
+            }
+          };
+
+          setStat('valDaunStatus', s.biomassa_daun_g, 152.1, 177.2);
+          setStat('valBatangStatus', s.biomassa_batang_g, 88.6, 112.2);
+          setStat('valBuahStatus', s.biomassa_buah_g, 217.5, 249.8);
+          setStat('valAkarStatus', s.biomassa_akar_g, 0.009, 0.352);
+
+          // Render Grouped Bar Chart
+          const ctxVal = document.getElementById('chartValidasiBiomassa');
+          if (ctxVal) {
+            if (chartValidasiInst) chartValidasiInst.destroy();
+            chartValidasiInst = new Chart(ctxVal.getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: ['Daun', 'Batang', 'Buah', 'Akar'],
+                datasets: [
+                  {
+                    label: 'Simulasi Model (g)',
+                    data: [s.biomassa_daun_g, s.biomassa_batang_g, s.biomassa_buah_g, s.biomassa_akar_g],
+                    backgroundColor: '#0A594E',
+                    borderRadius: 6
+                  },
+                  {
+                    label: 'Observasi Min (g)',
+                    data: [152.1, 88.6, 217.5, 0.009],
+                    backgroundColor: '#BAE6FD',
+                    borderRadius: 6
+                  },
+                  {
+                    label: 'Observasi Max (g)',
+                    data: [177.2, 112.2, 249.8, 0.352],
+                    backgroundColor: '#FCD34D',
+                    borderRadius: 6
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'top', labels: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } } }
+                },
+                scales: {
+                  y: { title: { display: true, text: 'Bobot Biomassa (g/tanaman)' }, grid: { color: '#F1F5F9' } }
+                }
+              }
+            });
+          }
+        }
+
+        const tb = document.getElementById('tableHistorical');
+        tb.innerHTML = '';
+        data.historical.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50';
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-bold">${row.tahun}</td>
+            <td class="py-2.5 px-3">${row.garut_ha}</td>
+            <td class="py-2.5 px-3 font-semibold text-emerald-700">${row.garut_ton.toLocaleString()}</td>
+            <td class="py-2.5 px-3">${row.bogor_ha}</td>
+            <td class="py-2.5 px-3 font-semibold text-blue-700">${row.bogor_ton.toLocaleString()}</td>
+          `;
+          tb.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Populate & Filter Daily Table
+    let allTableRows = [];
+    function populateTable(d) {
+      allTableRows = [];
+      const n = d.HST.length;
+
+      for (let i = 0; i < n; i++) {
+        allTableRows.push({
+          hst: d.HST[i],
+          tgl: d.Tanggal[i],
+          fase: d.Fase[i],
+          lai: d.LAI[i],
+          buah: d.ProdBuah_tonBK_ha[i],
+          daun: d.Daun[i],
+          batang: d.Batang[i],
+          akar: d.Akar[i],
+          kat: d.KAT_persen[i],
+          wdf: d.WDF[i],
+          ch: d.CH[i],
+          eta: d.ETa[i]
+        });
+      }
+      filterTable();
+    }
+
+    function filterTable() {
+      const q = (document.getElementById('tableSearchInput')?.value || '').toLowerCase();
+      const fase = document.getElementById('tableFaseFilter')?.value || 'all';
+      const tbody = document.getElementById('tableSimulasiBody');
+      tbody.innerHTML = '';
+
+      const filtered = allTableRows.filter(row => {
+        const matchFase = (fase === 'all') || (row.fase.toLowerCase() === fase.toLowerCase());
+        const matchSearch = (!q) || (('h' + row.hst).includes(q)) || (row.tgl.toLowerCase().includes(q)) || (String(row.hst).includes(q));
+        return matchFase && matchSearch;
+      });
+
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-bold">${r.hst}</td>
+          <td class="py-2.5 px-3">${r.tgl}</td>
+          <td class="py-2.5 px-3"><span class="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold">${r.fase}</span></td>
+          <td class="py-2.5 px-3">${r.lai}</td>
+          <td class="py-2.5 px-3 font-bold text-rose-600">${r.buah}</td>
+          <td class="py-2.5 px-3">${r.daun}</td>
+          <td class="py-2.5 px-3">${r.batang}</td>
+          <td class="py-2.5 px-3">${r.akar}</td>
+          <td class="py-2.5 px-3 text-blue-600 font-bold">${r.kat}%</td>
+          <td class="py-2.5 px-3">${r.wdf}</td>
+          <td class="py-2.5 px-3">${r.ch}</td>
+          <td class="py-2.5 px-3">${r.eta}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const countEl = document.getElementById('tableRowCount');
+      if (countEl) countEl.textContent = `Menampilkan ${filtered.length} dari ${allTableRows.length} baris`;
+    }
+
+    // Startup initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      runSimulation();
+    });
+  </script>
+</body>
+</html>
