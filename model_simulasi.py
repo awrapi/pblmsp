@@ -320,7 +320,7 @@ def simulasi_tomat(P, df_cuaca, tgl_tanam, ps=0.0, prh=0.0, pch=0.0):
 
         Q10 = 2.0 ** ((T - 20.0) / 10.0)
         Wlama = np.array([wdaun[i - 1], wbatang[i - 1], wakar[i - 1], wbuah[i - 1]])
-        partisi_fase = partisi[current_fase_idx]
+        partisi_fase = partisi[current_partisi_idx]
         alokasi = Bnet * partisi_fase
         resp = np.minimum(km * Q10 * Wlama, Wlama + alokasi)
         baru = Wlama + alokasi - resp
