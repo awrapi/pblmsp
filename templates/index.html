@@ -137,6 +137,55 @@
       stroke: #0A594E !important;
     }
 
+    @media (min-width: 1024px) {
+      #mainSidebar {
+        flex-shrink: 0;
+        transition: width 180ms ease;
+      }
+
+      #mainSidebar.is-collapsed {
+        width: 4.5rem;
+        padding-inline: 0.625rem;
+      }
+
+      #mainSidebar.is-collapsed .sidebar-brand,
+      #mainSidebar.is-collapsed .sidebar-footer {
+        display: none;
+      }
+
+      #mainSidebar.is-collapsed .sidebar-header {
+        justify-content: center;
+        padding-right: 0;
+      }
+
+      #mainSidebar.is-collapsed .sidebar-tab {
+        justify-content: center;
+        padding-inline: 0;
+        border-radius: 0.75rem;
+      }
+
+      #mainSidebar.is-collapsed .sidebar-tab.active::before,
+      #mainSidebar.is-collapsed .sidebar-tab.active::after {
+        content: none;
+      }
+
+      #mainSidebar.is-collapsed .sidebar-tab span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+    }
+
+    @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+      #mainSidebar {
+        transition: none;
+      }
+    }
+
     /* Precision sleek scrollbar */
     ::-webkit-scrollbar {
       width: 5px;
@@ -199,8 +248,8 @@
       
       <div>
         <!-- Brand Logo Header -->
-        <div class="flex items-center justify-between pr-0 lg:pr-6 mb-6 sm:mb-8">
-          <div class="flex items-center space-x-3 cursor-pointer" onclick="openAboutModal()">
+        <div class="sidebar-header flex items-center justify-between gap-2 pr-0 lg:pr-3 mb-6 sm:mb-8">
+          <div class="sidebar-brand flex items-center space-x-3 cursor-pointer" onclick="openAboutModal()">
             <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner shrink-0">
               <svg class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
@@ -214,49 +263,52 @@
               <p class="text-[10px] text-emerald-100/70 font-bold tracking-widest uppercase mt-1">PBL MSP • IPB 2026</p>
             </div>
           </div>
+          <button type="button" id="desktopSidebarToggle" onclick="toggleDesktopSidebar()" aria-controls="sidebarNavigation" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar" class="hidden lg:grid place-items-center w-10 h-10 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300">
+            <i data-lucide="menu" class="w-5 h-5" aria-hidden="true"></i>
+          </button>
           <button onclick="toggleMobileSidebar()" class="lg:hidden text-white/70 hover:text-white p-1.5 rounded-lg bg-white/10">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
 
         <!-- Navigation Tabs -->
-        <nav class="space-y-1.5 sm:space-y-1 pr-0 text-[13px] font-semibold">
-          <button onclick="switchTab('overview', this)" class="sidebar-tab active w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+        <nav id="sidebarNavigation" aria-label="Navigasi dashboard" class="space-y-1.5 sm:space-y-1 pr-0 text-[13px] font-semibold">
+          <button onclick="switchTab('overview', this)" title="Overview" class="sidebar-tab active w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="layout-grid" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Overview</span>
           </button>
 
-          <button onclick="switchTab('biomassa', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+          <button onclick="switchTab('biomassa', this)" title="Dinamika Organ" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="sprout" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Dinamika Organ</span>
           </button>
 
-          <button onclick="switchTab('neraca-air', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+          <button onclick="switchTab('neraca-air', this)" title="Neraca Air & KAT" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="droplet" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Neraca Air & KAT</span>
           </button>
 
-          <button onclick="switchTab('skenario', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+          <button onclick="switchTab('skenario', this)" title="Skenario Iklim" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="sun-medium" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Skenario Iklim</span>
           </button>
 
-          <button onclick="switchTab('validasi', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+          <button onclick="switchTab('validasi', this)" title="Validasi Data Riil" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="check-circle-2" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Validasi Data Riil</span>
           </button>
 
-          <button onclick="switchTab('tabel', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+          <button onclick="switchTab('tabel', this)" title="Tabel Harian" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="table" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Tabel Harian</span>
           </button>
 
-          <button onclick="switchTab('parameter', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+          <button onclick="switchTab('parameter', this)" title="Parameter Model" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="sliders" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Parameter Model</span>
           </button>
 
-          <button onclick="switchTab('about-us', this)" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+          <button onclick="switchTab('about-us', this)" title="About Us" class="sidebar-tab w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="users" class="w-4 h-4 stroke-[2.2]"></i>
             <span>About Us</span>
           </button>
@@ -264,7 +316,7 @@
       </div>
 
       <!-- Bottom Card: Institutional Seal Panel -->
-      <div class="pr-0 lg:pr-6 mt-6">
+      <div class="sidebar-footer pr-0 lg:pr-6 mt-6">
         <div class="relative bg-gradient-to-b from-white/[0.09] to-white/[0.03] backdrop-blur-md rounded-2xl p-4 border border-white/15 shadow-xl overflow-hidden">
           
           <!-- Status Bar -->
@@ -1596,6 +1648,17 @@
       }
     }
 
+    function toggleDesktopSidebar(forceCollapsed) {
+      const sidebar = document.getElementById('mainSidebar');
+      const button = document.getElementById('desktopSidebarToggle');
+      const collapsed = forceCollapsed ?? !sidebar.classList.contains('is-collapsed');
+      sidebar.classList.toggle('is-collapsed', collapsed);
+      button.setAttribute('aria-expanded', String(!collapsed));
+      const label = collapsed ? 'Lebarkan sidebar' : 'Ciutkan sidebar';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+
     // Tab Switcher with Auto Active Indicator
     function switchTab(tabId, el) {
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
@@ -1623,6 +1686,8 @@
       const sb = document.getElementById('mainSidebar');
       if (window.innerWidth < 1024 && !sb.classList.contains('-translate-x-full')) {
         toggleMobileSidebar();
+      } else if (window.innerWidth >= 1024 && tabId === 'overview' && el?.classList.contains('sidebar-tab')) {
+        toggleDesktopSidebar(true);
       }
 
       const mainCanvas = document.querySelector('main');
