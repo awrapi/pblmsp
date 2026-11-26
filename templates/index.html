@@ -158,6 +158,10 @@
         padding-right: 0;
       }
 
+      #mainSidebar.is-collapsed #desktopSidebarToggle {
+        display: grid;
+      }
+
       #mainSidebar.is-collapsed .sidebar-tab {
         justify-content: center;
         padding-inline: 0;
@@ -248,7 +252,7 @@
       
       <div>
         <!-- Brand Logo Header -->
-        <div class="sidebar-header flex items-center justify-between gap-2 pr-0 lg:pr-3 mb-6 sm:mb-8">
+        <div class="sidebar-header flex items-center justify-between pr-0 lg:pr-6 mb-6 sm:mb-8">
           <div class="sidebar-brand flex items-center space-x-3 cursor-pointer" onclick="openAboutModal()">
             <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner shrink-0">
               <svg class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -263,8 +267,8 @@
               <p class="text-[10px] text-emerald-100/70 font-bold tracking-widest uppercase mt-1">PBL MSP • IPB 2026</p>
             </div>
           </div>
-          <button type="button" id="desktopSidebarToggle" onclick="toggleDesktopSidebar()" aria-controls="sidebarNavigation" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar" class="hidden lg:grid place-items-center w-10 h-10 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300">
-            <i data-lucide="menu" class="w-5 h-5" aria-hidden="true"></i>
+          <button type="button" id="desktopSidebarToggle" onclick="setDesktopSidebarCollapsed(false)" aria-controls="sidebarNavigation" aria-expanded="true" aria-label="Lebarkan sidebar" title="Lebarkan sidebar" class="hidden place-items-center w-10 h-10 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300">
+            <i data-lucide="leaf" class="w-5 h-5 text-amber-300" aria-hidden="true"></i>
           </button>
           <button onclick="toggleMobileSidebar()" class="lg:hidden text-white/70 hover:text-white p-1.5 rounded-lg bg-white/10">
             <i data-lucide="x" class="w-5 h-5"></i>
@@ -1648,15 +1652,12 @@
       }
     }
 
-    function toggleDesktopSidebar(forceCollapsed) {
+    function setDesktopSidebarCollapsed(collapsed) {
       const sidebar = document.getElementById('mainSidebar');
       const button = document.getElementById('desktopSidebarToggle');
-      const collapsed = forceCollapsed ?? !sidebar.classList.contains('is-collapsed');
       sidebar.classList.toggle('is-collapsed', collapsed);
       button.setAttribute('aria-expanded', String(!collapsed));
-      const label = collapsed ? 'Lebarkan sidebar' : 'Ciutkan sidebar';
-      button.setAttribute('aria-label', label);
-      button.title = label;
+      if (!collapsed) sidebar.querySelector('.sidebar-tab.active')?.focus({ preventScroll: true });
     }
 
     // Tab Switcher with Auto Active Indicator
@@ -1686,8 +1687,8 @@
       const sb = document.getElementById('mainSidebar');
       if (window.innerWidth < 1024 && !sb.classList.contains('-translate-x-full')) {
         toggleMobileSidebar();
-      } else if (window.innerWidth >= 1024 && tabId === 'overview' && el?.classList.contains('sidebar-tab')) {
-        toggleDesktopSidebar(true);
+      } else if (window.innerWidth >= 1024 && el?.classList.contains('sidebar-tab')) {
+        setDesktopSidebarCollapsed(true);
       }
 
       const mainCanvas = document.querySelector('main');
