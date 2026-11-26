@@ -81,50 +81,43 @@
 
     @media (min-width: 1024px) {
       body {
-        padding: 1.25rem;
-        align-items: center;
+        --dashboard-gutter: 1.25rem;
+        padding: var(--dashboard-gutter);
+      }
+
+      #dashboard {
+        height: calc(100vh - 2 * var(--dashboard-gutter));
+        height: calc(100dvh - 2 * var(--dashboard-gutter));
+        min-height: 0;
+      }
+
+      #mainSidebar,
+      #dashboard > main {
+        min-height: 0;
+        overscroll-behavior-y: contain;
       }
     }
 
     /* Precision Tab Styles */
     .sidebar-tab {
-      position: relative;
-      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color 180ms ease, color 180ms ease;
       border-radius: 16px;
     }
 
     @media (min-width: 1024px) {
       .sidebar-tab {
-        border-radius: 0;
-        border-top-left-radius: 28px;
-        border-bottom-left-radius: 28px;
+        border-radius: 0.75rem;
+        padding-block: 0.625rem;
       }
+    }
 
-      .sidebar-tab.active::before {
-        content: '';
-        position: absolute;
-        top: -24px;
-        right: 0;
-        width: 24px;
-        height: 24px;
-        background: transparent;
-        border-bottom-right-radius: 24px;
-        box-shadow: 12px 12px 0 12px #FFFFFF;
-        pointer-events: none;
-      }
+    .sidebar-tab:hover {
+      background-color: rgb(255 255 255 / 0.1);
+    }
 
-      .sidebar-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: -24px;
-        right: 0;
-        width: 24px;
-        height: 24px;
-        background: transparent;
-        border-top-right-radius: 24px;
-        box-shadow: 12px -12px 0 12px #FFFFFF;
-        pointer-events: none;
-      }
+    .sidebar-tab:focus-visible {
+      outline: 2px solid #FCD34D;
+      outline-offset: -3px;
     }
 
     .sidebar-tab.active {
@@ -192,14 +185,14 @@
   <div id="mobileBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 hidden lg:hidden transition-opacity"></div>
 
   <!-- ==================== MAIN APPLICATION CONTAINER ==================== -->
-  <div class="w-full max-w-[1480px] bg-brand-teal rounded-none sm:rounded-3xl lg:rounded-[40px] p-0 sm:p-2 lg:p-3 shadow-none sm:shadow-2xl border-0 sm:border-2 lg:border-4 border-brand-tealDark/40 flex flex-col lg:flex-row overflow-x-hidden min-h-screen lg:min-h-[880px] relative">
+  <div id="dashboard" class="w-full max-w-[1480px] bg-brand-teal rounded-none sm:rounded-3xl lg:rounded-[40px] p-0 sm:p-2 lg:p-3 shadow-none sm:shadow-2xl border-0 sm:border-2 lg:border-4 border-brand-tealDark/40 flex flex-col lg:flex-row overflow-x-hidden min-h-screen relative">
     
     <!-- ==================== SIDEBAR ==================== -->
-    <aside id="mainSidebar" class="fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-72 max-w-[85vw] lg:w-64 bg-brand-teal text-white flex flex-col justify-between pt-6 sm:pt-7 pb-6 lg:pb-5 px-5 lg:pl-6 lg:pr-0 select-none transition-transform duration-300 -translate-x-full lg:translate-x-0 shadow-2xl lg:shadow-none overflow-y-auto">
+    <aside id="mainSidebar" class="fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-72 max-w-[85vw] lg:w-64 lg:shrink-0 bg-brand-teal text-white flex flex-col justify-between pt-6 sm:pt-7 pb-6 lg:pb-5 px-5 lg:px-4 select-none transition-transform duration-300 -translate-x-full lg:translate-x-0 shadow-2xl lg:shadow-none overflow-y-auto">
       
       <div>
         <!-- Brand Logo Header -->
-        <div class="flex items-center justify-between pr-0 lg:pr-6 mb-6 sm:mb-8">
+        <div class="flex items-center justify-between mb-6 sm:mb-8 lg:mb-6">
           <div class="flex items-center space-x-3 cursor-pointer" onclick="openAboutModal()">
             <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner shrink-0">
               <svg class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -220,8 +213,8 @@
         </div>
 
         <!-- Navigation Tabs -->
-        <nav class="space-y-1.5 sm:space-y-1 pr-0 text-[13px] font-semibold">
-          <button onclick="switchTab('overview', this)" class="sidebar-tab active w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
+        <nav aria-label="Navigasi dashboard" class="space-y-1.5 sm:space-y-1 text-[13px] font-semibold">
+          <button onclick="switchTab('overview', this)" aria-current="true" class="sidebar-tab active w-full flex items-center space-x-3.5 px-4 py-3 sm:py-3 text-white/80 hover:text-white text-left">
             <i data-lucide="layout-grid" class="w-4 h-4 stroke-[2.2]"></i>
             <span>Overview</span>
           </button>
@@ -264,7 +257,7 @@
       </div>
 
       <!-- Bottom Card: Institutional Seal Panel -->
-      <div class="pr-0 lg:pr-6 mt-6">
+      <div class="mt-6">
         <div class="relative bg-gradient-to-b from-white/[0.09] to-white/[0.03] backdrop-blur-md rounded-2xl p-4 border border-white/15 shadow-xl overflow-hidden">
           
           <!-- Status Bar -->
@@ -303,7 +296,7 @@
     </aside>
 
     <!-- ==================== MAIN CANVAS (RESPONSIVE) ==================== -->
-    <main class="flex-1 bg-white rounded-none sm:rounded-2xl lg:rounded-[34px] p-3.5 sm:p-6 lg:p-8 flex flex-col justify-start space-y-5 sm:space-y-6 overflow-y-visible lg:overflow-y-auto max-h-none lg:max-h-[890px] w-full min-w-0 pb-24 lg:pb-8">
+    <main class="flex-1 bg-white rounded-none sm:rounded-2xl lg:rounded-[34px] p-3.5 sm:p-6 lg:p-8 flex flex-col justify-start space-y-5 sm:space-y-6 overflow-y-visible lg:overflow-y-auto w-full min-w-0 pb-24 lg:pb-8">
       
       <!-- Top Control Bar (Mobile-Optimized Responsive Header) -->
       <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-100">
@@ -1604,8 +1597,12 @@
 
       let targetBtn = (el && el.classList.contains('sidebar-tab')) ? el : document.querySelector(`.sidebar-tab[onclick*="'${tabId}'"]`);
       if (targetBtn) {
-        document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.sidebar-tab[aria-current]').forEach(t => {
+          t.classList.remove('active');
+          t.removeAttribute('aria-current');
+        });
         targetBtn.classList.add('active');
+        targetBtn.setAttribute('aria-current', 'true');
       }
 
       // Update mobile bottom dock active state
