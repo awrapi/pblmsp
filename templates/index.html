@@ -1662,6 +1662,13 @@
 
     // Tab Switcher with Auto Active Indicator
     function switchTab(tabId, el) {
+      const sb = document.getElementById('mainSidebar');
+      const desktopSidebarClick = window.innerWidth >= 1024 && el?.classList.contains('sidebar-tab');
+      if (desktopSidebarClick && el.classList.contains('active')) {
+        setDesktopSidebarCollapsed(!sb.classList.contains('is-collapsed'));
+        return;
+      }
+
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
       const activePane = document.getElementById('tab-' + tabId);
       if (activePane) activePane.classList.remove('hidden');
@@ -1684,10 +1691,9 @@
       });
 
       // Close mobile drawer if opened
-      const sb = document.getElementById('mainSidebar');
       if (window.innerWidth < 1024 && !sb.classList.contains('-translate-x-full')) {
         toggleMobileSidebar();
-      } else if (window.innerWidth >= 1024 && el?.classList.contains('sidebar-tab')) {
+      } else if (desktopSidebarClick) {
         setDesktopSidebarCollapsed(true);
       }
 
